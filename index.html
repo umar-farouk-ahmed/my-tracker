@@ -5,24 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Learning Tracker</title>
     
-    <!-- Load Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Load Phosphor Icons for simple icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 10px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans min-h-screen p-4 md:p-8">
@@ -145,14 +134,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==============================================================================
-        // YOUR FIREBASE CONFIGURATION GOES HERE
-        // When deploying to GitHub, replace this block with your code from Firebase Console
-        // ==============================================================================
-        const userProvidedConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyA3I0Ck-l254XJotMP__n0GOb7bbZKMOpo",
             authDomain: "learning-tracker-97fca.firebaseapp.com",
             projectId: "learning-tracker-97fca",
@@ -161,70 +146,48 @@
             appId: "1:268847922283:web:84d32792068fa2d24c052e",
             measurementId: "G-52WE65ZNR1"
         };
-
-        // Fallback logic for the interactive environment (do not change this)
-        const environmentConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "mock", projectId: "mock" };
-        const firebaseConfig = userProvidedConfig || environmentConfig;
-        const defaultAppId = typeof __app_id !== 'undefined' ? __app_id : 'my-local-app';
         
-        // Initialize Firebase
+        // Initialize Firebase cleanly
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // App State
         let allLogs = [];
         let heatmapDates = [];
         let currentUserId = null;
 
-        // Set today's date in form
         const todayStr = new Date().toISOString().split('T')[0];
         document.getElementById('date-input').value = todayStr;
         document.getElementById('date-input').max = todayStr;
 
         async function initAuth() {
             try {
-                // If using your real Firebase config, skip the preview environment's mock token
-                if (userProvidedConfig) {
-                    const credentials = await signInAnonymously(auth);
-                    currentUserId = credentials.user.uid;
-                } else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    const credentials = await signInWithCustomToken(auth, __initial_auth_token);
-                    currentUserId = credentials.user.uid;
-                } else {
-                    const credentials = await signInAnonymously(auth);
-                    currentUserId = credentials.user.uid;
-                }
+                // Use standard Anonymous Authentication
+                const credentials = await signInAnonymously(auth);
+                currentUserId = credentials.user.uid;
                 loadData();
             } catch (err) {
                 console.error("Auth error:", err);
-                
-                // Show a helpful message if Anonymous Auth isn't turned on in Firebase
-                if (err.code === 'auth/admin-restricted-operation' || err.code === 'auth/operation-not-allowed' || err.code === 'auth/configuration-not-found') {
-                    document.getElementById('loading-text').innerHTML = `
-                        <span class="text-red-500 font-medium">Almost there!</span><br/>
-                        To fix this, go to your Firebase Console &rarr; Authentication &rarr; Sign-in method &rarr; Enable "Anonymous".
-                    `;
-                } else {
-                    document.getElementById('loading-text').innerText = "Error connecting to database. Check the console.";
-                }
+                document.getElementById('loading-text').innerHTML = `
+                    <span class="text-red-500 font-medium">Authentication Failed</span><br/>
+                    Make sure to enable "Anonymous" Sign-in method in your Firebase Console.
+                `;
             }
         }
 
         function loadData() {
             if (!currentUserId) return;
             
-            // NOTE: If deploying your own simple database, you can change this path to just: collection(db, 'logs')
-            const logsRef = collection(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs');
+            // Cleaned up database path
+            const logsRef = collection(db, 'users', currentUserId, 'learning_logs');
+            const q = query(logsRef, orderBy("createdAt", "desc"));
 
-            onSnapshot(logsRef, (snapshot) => {
+            onSnapshot(q, (snapshot) => {
                 allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort by date newest first
-                allLogs.sort((a, b) => new Date(b.date) - new Date(a.date) || b.createdAt - a.createdAt);
-                
                 updateUI();
             }, (error) => {
                 console.error("Error fetching logs:", error);
+                document.getElementById('loading-text').innerText = "Database connection error.";
             });
         }
 
@@ -234,7 +197,7 @@
             
             const startDate = new Date(today);
             startDate.setDate(today.getDate() - 365);
-            startDate.setDate(startDate.getDate() - startDate.getDay()); // Start on Sunday
+            startDate.setDate(startDate.getDate() - startDate.getDay()); 
             
             const dates = [];
             let current = new Date(startDate);
@@ -255,11 +218,10 @@
             const filter = document.getElementById('subject-filter').value;
             const filteredLogs = filter === 'All' ? allLogs : allLogs.filter(log => log.subject === filter);
             
-            // 1. Update Filter Dropdown Options
             const subjects = new Set(allLogs.map(log => log.subject));
             const filterDropdown = document.getElementById('subject-filter');
-            // Keep current selection
             const currentSelection = filterDropdown.value;
+            
             filterDropdown.innerHTML = '<option value="All">All Subjects</option>';
             Array.from(subjects).sort().forEach(sub => {
                 const opt = document.createElement('option');
@@ -269,13 +231,11 @@
             });
             filterDropdown.value = subjects.has(currentSelection) ? currentSelection : 'All';
 
-            // 2. Calculate Activity Map
             const activityMap = {};
             filteredLogs.forEach(log => {
                 activityMap[log.date] = (activityMap[log.date] || 0) + 1;
             });
 
-            // 3. Render Heatmap
             const grid = document.getElementById('heatmap-grid');
             grid.style.gridTemplateColumns = `repeat(${Math.ceil(heatmapDates.length / 7)}, 1fr)`;
             grid.innerHTML = '';
@@ -295,7 +255,6 @@
                 grid.appendChild(div);
             });
 
-            // 4. Calculate Stats
             let currentStreak = 0;
             let streakActive = true;
             let totalLogs = 0;
@@ -314,7 +273,6 @@
             document.getElementById('streak-counter').innerText = `${currentStreak} Days`;
             document.getElementById('total-logs').innerText = `${totalLogs} logs in the last year`;
 
-            // 5. Render Logs List
             const logsContainer = document.getElementById('logs-container');
             logsContainer.innerHTML = '';
             
@@ -347,12 +305,11 @@
                 logsContainer.appendChild(el);
             });
 
-            // Add delete event listeners
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const id = e.currentTarget.getAttribute('data-id');
                     if(currentUserId) {
-                        await deleteDoc(doc(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs', id));
+                        await deleteDoc(doc(db, 'users', currentUserId, 'learning_logs', id));
                     }
                 });
             });
@@ -371,7 +328,7 @@
             btn.innerText = 'Saving...';
 
             try {
-                const logsRef = collection(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs');
+                const logsRef = collection(db, 'users', currentUserId, 'learning_logs');
                 await addDoc(logsRef, {
                     date: date,
                     subject: subject.trim(),
@@ -389,12 +346,8 @@
             }
         });
 
-        // Handle Filter change
         document.getElementById('subject-filter').addEventListener('change', updateUI);
-
-        // Start everything
         initAuth();
-
     </script>
 </body>
 </html>
