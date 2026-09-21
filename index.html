@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Learning Tracker</title>
+    
+    <!-- Load Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Load Phosphor Icons for simple icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto space-y-8">
+        
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold flex items-center gap-2">
+                    <i class="ph-fill ph-activity text-emerald-500"></i>
+                    Learning Tracker
+                </h1>
+                <p class="text-slate-500 mt-1">Track your consistency in Front-end, Python, and more.</p>
+            </div>
+            
+            <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center gap-3 shadow-sm">
+                <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">
+                    <i class="ph-fill ph-fire text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Current Streak</p>
+                    <p class="text-xl font-bold" id="streak-counter">0 Days</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Side: Heatmap and Logs -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Heatmap Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                        <h2 class="text-lg font-semibold flex items-center gap-2">
+                            <i class="ph-fill ph-calendar-blank text-emerald-500"></i>
+                            Consistency Graph
+                        </h2>
+                        
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-funnel text-slate-400"></i>
+                            <select id="subject-filter" class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="All">All Subjects</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto pb-4 custom-scrollbar">
+                        <div id="heatmap-grid" class="grid gap-[3px] min-w-max" style="grid-auto-flow: column; grid-template-rows: repeat(7, 1fr);">
+                            <!-- Heatmap squares injected by JS -->
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
+                        <span id="total-logs">0 logs in the last year</span>
+                        <div class="flex items-center gap-1.5">
+                            <span>Less</span>
+                            <div class="w-3 h-3 rounded-sm bg-gray-100"></div>
+                            <div class="w-3 h-3 rounded-sm bg-emerald-200"></div>
+                            <div class="w-3 h-3 rounded-sm bg-emerald-300"></div>
+                            <div class="w-3 h-3 rounded-sm bg-emerald-400"></div>
+                            <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
+                            <span>More</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                    <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                        <i class="ph-fill ph-book-open text-emerald-500"></i>
+                        Recent Activity
+                    </h2>
+                    
+                    <div id="logs-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        <p class="text-slate-500 text-center py-8" id="loading-text">Loading your logs...</p>
+                        <!-- Logs injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Input Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm sticky top-8">
+                    <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
+                        <i class="ph-fill ph-plus-circle text-emerald-500"></i>
+                        Log Learning
+                    </h2>
+                    
+                    <form id="log-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Date</label>
+                            <input type="date" id="date-input" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Subject / Track</label>
+                            <input type="text" id="subject-input" required list="subjects" placeholder="e.g. React, Python..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <datalist id="subjects">
+                                <option value="Front-end Development"></option>
+                                <option value="React"></option>
+                                <option value="Python"></option>
+                                <option value="Machine Learning"></option>
+                            </datalist>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Notes (Optional)</label>
+                            <textarea id="notes-input" rows="3" placeholder="What did you learn today?" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
+                        </div>
+                        
+                        <button type="submit" id="submit-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm active:scale-[0.98]">
+                            Save Progress
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==============================================================================
+        // YOUR FIREBASE CONFIGURATION GOES HERE
+        // When deploying to GitHub, replace this block with your code from Firebase Console
+        // ==============================================================================
+        const userProvidedConfig = {
+            apiKey: "AIzaSyA3I0Ck-l254XJotMP__n0GOb7bbZKMOpo",
+            authDomain: "learning-tracker-97fca.firebaseapp.com",
+            projectId: "learning-tracker-97fca",
+            storageBucket: "learning-tracker-97fca.firebasestorage.app",
+            messagingSenderId: "268847922283",
+            appId: "1:268847922283:web:84d32792068fa2d24c052e",
+            measurementId: "G-52WE65ZNR1"
+        };
+
+        // Fallback logic for the interactive environment (do not change this)
+        const environmentConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "mock", projectId: "mock" };
+        const firebaseConfig = userProvidedConfig || environmentConfig;
+        const defaultAppId = typeof __app_id !== 'undefined' ? __app_id : 'my-local-app';
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // App State
+        let allLogs = [];
+        let heatmapDates = [];
+        let currentUserId = null;
+
+        // Set today's date in form
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('date-input').value = todayStr;
+        document.getElementById('date-input').max = todayStr;
+
+        async function initAuth() {
+            try {
+                // If using your real Firebase config, skip the preview environment's mock token
+                if (userProvidedConfig) {
+                    const credentials = await signInAnonymously(auth);
+                    currentUserId = credentials.user.uid;
+                } else if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const credentials = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUserId = credentials.user.uid;
+                } else {
+                    const credentials = await signInAnonymously(auth);
+                    currentUserId = credentials.user.uid;
+                }
+                loadData();
+            } catch (err) {
+                console.error("Auth error:", err);
+                
+                // Show a helpful message if Anonymous Auth isn't turned on in Firebase
+                if (err.code === 'auth/admin-restricted-operation' || err.code === 'auth/operation-not-allowed' || err.code === 'auth/configuration-not-found') {
+                    document.getElementById('loading-text').innerHTML = `
+                        <span class="text-red-500 font-medium">Almost there!</span><br/>
+                        To fix this, go to your Firebase Console &rarr; Authentication &rarr; Sign-in method &rarr; Enable "Anonymous".
+                    `;
+                } else {
+                    document.getElementById('loading-text').innerText = "Error connecting to database. Check the console.";
+                }
+            }
+        }
+
+        function loadData() {
+            if (!currentUserId) return;
+            
+            // NOTE: If deploying your own simple database, you can change this path to just: collection(db, 'logs')
+            const logsRef = collection(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs');
+
+            onSnapshot(logsRef, (snapshot) => {
+                allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Sort by date newest first
+                allLogs.sort((a, b) => new Date(b.date) - new Date(a.date) || b.createdAt - a.createdAt);
+                
+                updateUI();
+            }, (error) => {
+                console.error("Error fetching logs:", error);
+            });
+        }
+
+        function generateHeatmapDates() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() - 365);
+            startDate.setDate(startDate.getDate() - startDate.getDay()); // Start on Sunday
+            
+            const dates = [];
+            let current = new Date(startDate);
+            
+            while (current <= today) {
+                const y = current.getFullYear();
+                const m = String(current.getMonth() + 1).padStart(2, '0');
+                const d = String(current.getDate()).padStart(2, '0');
+                dates.push(`${y}-${m}-${d}`);
+                current.setDate(current.getDate() + 1);
+            }
+            return dates;
+        }
+
+        heatmapDates = generateHeatmapDates();
+
+        function updateUI() {
+            const filter = document.getElementById('subject-filter').value;
+            const filteredLogs = filter === 'All' ? allLogs : allLogs.filter(log => log.subject === filter);
+            
+            // 1. Update Filter Dropdown Options
+            const subjects = new Set(allLogs.map(log => log.subject));
+            const filterDropdown = document.getElementById('subject-filter');
+            // Keep current selection
+            const currentSelection = filterDropdown.value;
+            filterDropdown.innerHTML = '<option value="All">All Subjects</option>';
+            Array.from(subjects).sort().forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.innerText = sub;
+                filterDropdown.appendChild(opt);
+            });
+            filterDropdown.value = subjects.has(currentSelection) ? currentSelection : 'All';
+
+            // 2. Calculate Activity Map
+            const activityMap = {};
+            filteredLogs.forEach(log => {
+                activityMap[log.date] = (activityMap[log.date] || 0) + 1;
+            });
+
+            // 3. Render Heatmap
+            const grid = document.getElementById('heatmap-grid');
+            grid.style.gridTemplateColumns = `repeat(${Math.ceil(heatmapDates.length / 7)}, 1fr)`;
+            grid.innerHTML = '';
+            
+            heatmapDates.forEach(date => {
+                const count = activityMap[date] || 0;
+                const div = document.createElement('div');
+                div.className = 'w-[12px] h-[12px] rounded-sm transition-colors cursor-help ';
+                
+                if (count === 0) div.classList.add('bg-gray-100');
+                else if (count === 1) div.classList.add('bg-emerald-200');
+                else if (count === 2) div.classList.add('bg-emerald-300');
+                else if (count === 3) div.classList.add('bg-emerald-400');
+                else div.classList.add('bg-emerald-500');
+                
+                div.title = `${date}: ${count} logs`;
+                grid.appendChild(div);
+            });
+
+            // 4. Calculate Stats
+            let currentStreak = 0;
+            let streakActive = true;
+            let totalLogs = 0;
+
+            for (let i = heatmapDates.length - 1; i >= 0; i--) {
+                const d = heatmapDates[i];
+                if (d > todayStr) continue;
+                if (activityMap[d] > 0) {
+                    if (streakActive) currentStreak++;
+                    totalLogs += activityMap[d];
+                } else {
+                    if (d < todayStr) streakActive = false;
+                }
+            }
+            
+            document.getElementById('streak-counter').innerText = `${currentStreak} Days`;
+            document.getElementById('total-logs').innerText = `${totalLogs} logs in the last year`;
+
+            // 5. Render Logs List
+            const logsContainer = document.getElementById('logs-container');
+            logsContainer.innerHTML = '';
+            
+            if (filteredLogs.length === 0) {
+                logsContainer.innerHTML = `<p class="text-slate-500 text-center py-8">No activity found. Time to learn something!</p>`;
+                return;
+            }
+
+            filteredLogs.forEach(log => {
+                const el = document.createElement('div');
+                el.className = 'group flex gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 relative';
+                
+                const iconClass = log.subject.toLowerCase().includes('python') ? 'ph-file-py text-blue-500' : 'ph-code text-emerald-500';
+                
+                el.innerHTML = `
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="ph-fill ${iconClass} text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <h3 class="font-medium">${log.subject}</h3>
+                            <span class="text-xs text-slate-500 font-mono">${log.date}</span>
+                        </div>
+                        ${log.notes ? `<p class="text-sm text-slate-600 whitespace-pre-wrap">${log.notes}</p>` : ''}
+                    </div>
+                    <button class="delete-btn absolute right-4 top-4 opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" data-id="${log.id}">
+                        <i class="ph ph-trash text-lg"></i>
+                    </button>
+                `;
+                logsContainer.appendChild(el);
+            });
+
+            // Add delete event listeners
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    if(currentUserId) {
+                        await deleteDoc(doc(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs', id));
+                    }
+                });
+            });
+        }
+
+        document.getElementById('log-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUserId) return;
+
+            const btn = document.getElementById('submit-btn');
+            const date = document.getElementById('date-input').value;
+            const subject = document.getElementById('subject-input').value;
+            const notes = document.getElementById('notes-input').value;
+
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            try {
+                const logsRef = collection(db, 'artifacts', defaultAppId, 'users', currentUserId, 'learning_logs');
+                await addDoc(logsRef, {
+                    date: date,
+                    subject: subject.trim(),
+                    notes: notes.trim(),
+                    createdAt: Date.now()
+                });
+                
+                document.getElementById('subject-input').value = '';
+                document.getElementById('notes-input').value = '';
+            } catch (err) {
+                console.error("Error adding doc: ", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Save Progress';
+            }
+        });
+
+        // Handle Filter change
+        document.getElementById('subject-filter').addEventListener('change', updateUI);
+
+        // Start everything
+        initAuth();
+
+    </script>
+</body>
+</html>
