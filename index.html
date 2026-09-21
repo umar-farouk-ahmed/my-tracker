@@ -1,440 +1,380 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Learning Tracker</title>
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learning Consistency Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen p-4 md:p-8">
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6;
+        color: #1f2937;
+      }
 
-    <!-- Login Screen (Visible by default) -->
-    <div id="login-screen" class="min-h-[80vh] flex flex-col items-center justify-center">
-        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md w-full mx-auto">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <i class="ph-fill ph-activity text-3xl"></i>
-            </div>
-            <h1 class="text-2xl font-bold mb-2">DevTracker</h1>
-            <p class="text-slate-500 mb-8">Sign in to sync your learning progress across all your devices securely.</p>
-            
-            <button id="login-btn" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-3 px-4 rounded-xl transition-colors shadow-sm active:scale-[0.98]">
-                <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
-                Sign in with Google
-            </button>
-            <p id="login-error" class="text-red-500 text-sm mt-4 hidden"></p>
+      /* Heatmap Styles */
+      .heatmap-grid {
+        display: grid;
+        grid-template-rows: repeat(7, 1fr);
+        grid-auto-flow: column;
+        gap: 4px;
+      }
+      .day-square {
+        width: 14px;
+        height: 14px;
+        background-color: #ebedf0;
+        border-radius: 3px;
+        cursor: pointer;
+        transition:
+          transform 0.1s ease,
+          box-shadow 0.1s ease;
+        position: relative;
+      }
+      .day-square:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+      }
+      .day-square.active-1 {
+        background-color: #9be9a8;
+      }
+      .day-square.active-2 {
+        background-color: #40c463;
+      }
+      .day-square.active-3 {
+        background-color: #30a14e;
+      }
+      .day-square.active-4 {
+        background-color: #216e39;
+      }
+
+      /* Custom Tooltip */
+      #tooltip {
+        position: absolute;
+        background: #24292f;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 50;
+        white-space: nowrap;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translate(-50%, -100%);
+        margin-top: -8px;
+      }
+      #tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #24292f transparent transparent transparent;
+      }
+
+      /* Scrollbar for heatmap container */
+      .heatmap-container {
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        scrollbar-width: thin;
+      }
+      .heatmap-container::-webkit-scrollbar {
+        height: 6px;
+      }
+      .heatmap-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 3px;
+      }
+
+      /* Loader */
+      .loader {
+        border: 3px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 3px solid #3b82f6;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen py-8 px-4 sm:px-8">
+    <div class="max-w-5xl mx-auto space-y-8">
+      <!-- Header -->
+      <header
+        class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+      >
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Learning Tracker</h1>
+          <p class="text-sm text-gray-500 mt-1">
+            Consistency is the key to mastery.
+          </p>
         </div>
+        <div
+          id="status-indicator"
+          class="flex items-center text-sm text-gray-500"
+        >
+          <div class="loader mr-2" id="loading-spinner"></div>
+          <span id="status-text">Connecting...</span>
+        </div>
+      </header>
+
+      <!-- Heatmap Section -->
+      <section
+        class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative"
+      >
+        <h2 class="text-lg font-semibold mb-4 text-gray-700">
+          Contribution Activity (Last 365 Days)
+        </h2>
+        <div class="heatmap-container relative" id="heatmap-scroll-area">
+          <div class="flex gap-4">
+            <!-- Days of week labels -->
+            <div
+              class="flex flex-col justify-between text-xs text-gray-400 py-1"
+              style="height: 122px"
+            >
+              <span>Mon</span>
+              <span>Wed</span>
+              <span>Fri</span>
+            </div>
+            <!-- Heatmap Grid -->
+            <div id="heatmap" class="heatmap-grid pb-2"></div>
+          </div>
+        </div>
+        <div id="tooltip"></div>
+
+        <div
+          class="flex items-center justify-end text-xs text-gray-500 mt-2 gap-2"
+        >
+          <span>Less</span>
+          <div class="w-3 h-3 rounded-sm bg-[#ebedf0]"></div>
+          <div class="w-3 h-3 rounded-sm bg-[#9be9a8]"></div>
+          <div class="w-3 h-3 rounded-sm bg-[#40c463]"></div>
+          <div class="w-3 h-3 rounded-sm bg-[#30a14e]"></div>
+          <div class="w-3 h-3 rounded-sm bg-[#216e39]"></div>
+          <span>More</span>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Form Section -->
+        <section
+          class="md:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit"
+        >
+          <h2 class="text-lg font-semibold mb-4 text-gray-700">Log Activity</h2>
+          <form id="log-form" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Date</label
+              >
+              <input
+                type="date"
+                id="log-date"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Course Name</label
+              >
+              <input
+                type="text"
+                id="log-course"
+                placeholder="e.g., React, Python"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Topic Covered</label
+              >
+              <input
+                type="text"
+                id="log-topic"
+                placeholder="e.g., Hooks, Loops"
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Notes (Optional)</label
+              >
+              <textarea
+                id="log-notes"
+                rows="3"
+                placeholder="Brief summary..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"
+              ></textarea>
+            </div>
+            <button
+              type="submit"
+              id="submit-btn"
+              class="w-full bg-gray-900 text-white font-medium py-2.5 rounded-lg hover:bg-gray-800 transition shadow-sm flex justify-center items-center"
+            >
+              Save Log
+            </button>
+          </form>
+        </section>
+
+        <!-- Recent Logs Section -->
+        <section
+          class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
+        >
+          <h2 class="text-lg font-semibold mb-4 text-gray-700">Recent Logs</h2>
+          <div
+            id="logs-container"
+            class="space-y-4 max-h-[500px] overflow-y-auto pr-2"
+          >
+            <p class="text-gray-500 text-sm italic">Loading logs...</p>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <!-- Main App Layout (Hidden until logged in) -->
-    <div id="app-screen" class="max-w-5xl mx-auto space-y-8 hidden">
-        
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h1 class="text-3xl font-bold flex items-center gap-2">
-                    <i class="ph-fill ph-activity text-emerald-500"></i>
-                    Learning Tracker
-                </h1>
-                <p class="text-slate-500 mt-1">Track your consistency in Front-end, Python, and more.</p>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="bg-white p-3 rounded-xl border border-slate-200 flex items-center gap-3 shadow-sm">
-                    <div class="p-2 bg-orange-100 text-orange-500 rounded-lg">
-                        <i class="ph-fill ph-fire text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Current Streak</p>
-                        <p class="text-xl font-bold" id="streak-counter">0 Days</p>
-                    </div>
-                </div>
-                <!-- Logout Button -->
-                <button id="logout-btn" class="p-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 rounded-xl transition-colors shadow-sm" title="Sign Out">
-                    <i class="ph ph-sign-out text-xl"></i>
-                </button>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Left Side: Heatmap and Logs -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- Heatmap Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-                        <h2 class="text-lg font-semibold flex items-center gap-2">
-                            <i class="ph-fill ph-calendar-blank text-emerald-500"></i>
-                            Consistency Graph
-                        </h2>
-                        
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-funnel text-slate-400"></i>
-                            <select id="subject-filter" class="bg-slate-50 border border-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                <option value="All">All Subjects</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto pb-4 custom-scrollbar">
-                        <div id="heatmap-grid" class="grid gap-[3px] min-w-max" style="grid-auto-flow: column; grid-template-rows: repeat(7, 1fr);">
-                            <!-- Heatmap squares injected by JS -->
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 flex items-center justify-between text-xs text-slate-500">
-                        <span id="total-logs">0 logs in the last year</span>
-                        <div class="flex items-center gap-1.5">
-                            <span>Less</span>
-                            <div class="w-3 h-3 rounded-sm bg-gray-100"></div>
-                            <div class="w-3 h-3 rounded-sm bg-emerald-200"></div>
-                            <div class="w-3 h-3 rounded-sm bg-emerald-300"></div>
-                            <div class="w-3 h-3 rounded-sm bg-emerald-400"></div>
-                            <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
-                            <span>More</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Card -->
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                    <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-book-open text-emerald-500"></i>
-                        Recent Activity
-                    </h2>
-                    
-                    <div id="logs-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                        <p class="text-slate-500 text-center py-8" id="loading-text">Loading your logs...</p>
-                        <!-- Logs injected by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Input Form -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm sticky top-8">
-                    <h2 class="text-lg font-semibold mb-6 flex items-center gap-2">
-                        <i class="ph-fill ph-plus-circle text-emerald-500"></i>
-                        Log Learning
-                    </h2>
-                    
-                    <form id="log-form" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Date</label>
-                            <input type="date" id="date-input" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Subject / Track</label>
-                            <input type="text" id="subject-input" required list="subjects" placeholder="e.g. React, Python..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <datalist id="subjects">
-                                <option value="Front-end Development"></option>
-                                <option value="React"></option>
-                                <option value="Python"></option>
-                                <option value="Machine Learning"></option>
-                            </datalist>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1.5">Notes (Optional)</label>
-                            <textarea id="notes-input" rows="3" placeholder="What did you learn today?" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"></textarea>
-                        </div>
-                        
-                        <button type="submit" id="submit-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-lg transition-colors shadow-sm active:scale-[0.98]">
-                            Save Progress
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <!-- Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-3"
+    >
+      <svg
+        class="w-5 h-5 text-green-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 13l4 4L19 7"
+        ></path>
+      </svg>
+      <span id="toast-msg">Activity logged successfully!</span>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Import Google Auth providers
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+      // Import Firebase app
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
-        // Your exact Firebase Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyA3I0Ck-l254XJotMP__n0GOb7bbZKMOpo",
-            authDomain: "learning-tracker-97fca.firebaseapp.com",
-            projectId: "learning-tracker-97fca",
-            storageBucket: "learning-tracker-97fca.firebasestorage.app",
-            messagingSenderId: "268847922283",
-            appId: "1:268847922283:web:84d32792068fa2d24c052e",
-            measurementId: "G-52WE65ZNR1"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+      // Import Firestore (The Database)
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        query,
+        orderBy,
+      } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-        let allLogs = [];
-        let heatmapDates = [];
-        let currentUserId = null;
-        let unsubscribeLogs = null;
+      // Your Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3ZLk2sK28LY0OP727Kpxu0xsCrfZksYs",
+        authDomain: "learning-tracker-9a1e1.firebaseapp.com",
+        projectId: "learning-tracker-9a1e1",
+        storageBucket: "learning-tracker-9a1e1.firebasestorage.app",
+        messagingSenderId: "933272881617",
+        appId: "1:933272881617:web:f9541d767ce37c77e9b8f0",
+        measurementId: "G-MJTQYNYE5H",
+      };
 
-        // Set max date to today
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('date-input').value = todayStr;
-        document.getElementById('date-input').max = todayStr;
+      // Initialize Firebase and Firestore
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-        
-        // Listen for Login state changes
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // User is signed in. Show app, hide login.
-                currentUserId = user.uid;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-                loadData();
-            } else {
-                // User is signed out. Show login, hide app.
-                currentUserId = null;
-                document.getElementById('login-screen').classList.remove('hidden');
-                document.getElementById('app-screen').classList.add('hidden');
-                
-                // Clean up previous user's data from screen
-                allLogs = [];
-                updateUI();
-                if(unsubscribeLogs) unsubscribeLogs();
-            }
-        });
+      // --- YOUR APP LOGIC STARTS HERE ---
 
-        // Login Button Click
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            try {
-                const btn = document.getElementById('login-btn');
-                const errorText = document.getElementById('login-error');
-                
-                btn.innerHTML = 'Signing in...';
-                btn.disabled = true;
-                errorText.classList.add('hidden');
-                
-                await signInWithPopup(auth, provider);
-                
-                // Button reset is handled by onAuthStateChanged hiding the screen
-                btn.innerHTML = `<img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5"> Sign in with Google`;
-                btn.disabled = false;
-            } catch (error) {
-                console.error("Login Error:", error);
-                const btn = document.getElementById('login-btn');
-                const errorText = document.getElementById('login-error');
-                btn.innerHTML = `<img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5"> Sign in with Google`;
-                btn.disabled = false;
-                
-                errorText.classList.remove('hidden');
-                errorText.innerText = `Error: ${error.message}. Make sure Google Auth is enabled in Firebase Console.`;
-            }
-        });
+      // Handle form submission
+      document
+        .getElementById("log-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const course = document.getElementById("course").value;
+          const topic = document.getElementById("topic").value;
+          const date = new Date().toISOString();
 
-        // Logout Button Click
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth);
-        });
-
-
-        function loadData() {
-            if (!currentUserId) return;
-            
-            // Clean database path tied directly to YOUR unique Google ID
-            const logsRef = collection(db, 'users', currentUserId, 'learning_logs');
-            const q = query(logsRef); // Removed orderBy to prevent missing index errors
-
-            unsubscribeLogs = onSnapshot(q, (snapshot) => {
-                allLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // Sort in memory (newest first)
-                allLogs.sort((a, b) => {
-                    const dateA = new Date(a.date);
-                    const dateB = new Date(b.date);
-                    if (dateA > dateB) return -1;
-                    if (dateA < dateB) return 1;
-                    return b.createdAt - a.createdAt; // Tie-breaker
-                });
-                
-                updateUI();
-            }, (error) => {
-                console.error("Error fetching logs:", error);
-                document.getElementById('loading-text').innerText = "Database connection error.";
+          try {
+            await addDoc(collection(db, "logs"), {
+              course: course,
+              topic: topic,
+              timestamp: date,
             });
+            document.getElementById("topic").value = ""; // clear input
+            loadLogs(); // refresh the data
+          } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("Error saving your log. Check console for details.");
+          }
+        });
+
+      // Load logs and generate heatmap
+      async function loadLogs() {
+        const logsList = document.getElementById("recent-logs");
+        logsList.innerHTML = "Loading...";
+
+        const q = query(collection(db, "logs"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        logsList.innerHTML = ""; // clear loading text
+        const trackerGrid = document.getElementById("tracker-grid");
+        trackerGrid.innerHTML = ""; // clear old grid
+
+        let logsData = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          logsData.push(data);
+
+          // Add to recent logs list
+          const li = document.createElement("li");
+          const logDate = new Date(data.timestamp).toLocaleDateString();
+          li.innerHTML = `<strong>${data.course}</strong>: ${data.topic} <em>(${logDate})</em>`;
+          logsList.appendChild(li);
+        });
+
+        // Generate Heatmap (Last 30 days)
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateString = d.toLocaleDateString();
+
+          const box = document.createElement("div");
+          box.classList.add("day-box");
+          box.title = dateString;
+
+          // Check if any log matches this date
+          const hasActivity = logsData.some(
+            (log) =>
+              new Date(log.timestamp).toLocaleDateString() === dateString,
+          );
+
+          if (hasActivity) {
+            box.classList.add("active");
+          }
+
+          trackerGrid.appendChild(box);
         }
+      }
 
-        function generateHeatmapDates() {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const startDate = new Date(today);
-            startDate.setDate(today.getDate() - 365);
-            startDate.setDate(startDate.getDate() - startDate.getDay()); 
-            
-            const dates = [];
-            let current = new Date(startDate);
-            
-            while (current <= today) {
-                const y = current.getFullYear();
-                const m = String(current.getMonth() + 1).padStart(2, '0');
-                const d = String(current.getDate()).padStart(2, '0');
-                dates.push(`${y}-${m}-${d}`);
-                current.setDate(current.getDate() + 1);
-            }
-            return dates;
-        }
-
-        heatmapDates = generateHeatmapDates();
-
-        function updateUI() {
-            const filter = document.getElementById('subject-filter').value;
-            const filteredLogs = filter === 'All' ? allLogs : allLogs.filter(log => log.subject === filter);
-            
-            // Update Subject Filter Dropdown
-            const subjects = new Set(allLogs.map(log => log.subject));
-            const filterDropdown = document.getElementById('subject-filter');
-            const currentSelection = filterDropdown.value;
-            
-            filterDropdown.innerHTML = '<option value="All">All Subjects</option>';
-            Array.from(subjects).sort().forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub;
-                opt.innerText = sub;
-                filterDropdown.appendChild(opt);
-            });
-            filterDropdown.value = subjects.has(currentSelection) ? currentSelection : 'All';
-
-            // Calculate Activity
-            const activityMap = {};
-            filteredLogs.forEach(log => {
-                activityMap[log.date] = (activityMap[log.date] || 0) + 1;
-            });
-
-            // Render Heatmap Grid
-            const grid = document.getElementById('heatmap-grid');
-            grid.style.gridTemplateColumns = `repeat(${Math.ceil(heatmapDates.length / 7)}, 1fr)`;
-            grid.innerHTML = '';
-            
-            heatmapDates.forEach(date => {
-                const count = activityMap[date] || 0;
-                const div = document.createElement('div');
-                div.className = 'w-[12px] h-[12px] rounded-sm transition-colors cursor-help ';
-                
-                if (count === 0) div.classList.add('bg-gray-100');
-                else if (count === 1) div.classList.add('bg-emerald-200');
-                else if (count === 2) div.classList.add('bg-emerald-300');
-                else if (count === 3) div.classList.add('bg-emerald-400');
-                else div.classList.add('bg-emerald-500');
-                
-                div.title = `${date}: ${count} logs`;
-                grid.appendChild(div);
-            });
-
-            // Calculate Streaks
-            let currentStreak = 0;
-            let streakActive = true;
-            let totalLogs = 0;
-
-            for (let i = heatmapDates.length - 1; i >= 0; i--) {
-                const d = heatmapDates[i];
-                if (d > todayStr) continue;
-                if (activityMap[d] > 0) {
-                    if (streakActive) currentStreak++;
-                    totalLogs += activityMap[d];
-                } else {
-                    if (d < todayStr) streakActive = false;
-                }
-            }
-            
-            document.getElementById('streak-counter').innerText = `${currentStreak} Days`;
-            document.getElementById('total-logs').innerText = `${totalLogs} logs in the last year`;
-
-            // Render Log List
-            const logsContainer = document.getElementById('logs-container');
-            logsContainer.innerHTML = '';
-            
-            if (filteredLogs.length === 0) {
-                logsContainer.innerHTML = `<p class="text-slate-500 text-center py-8">No activity found. Time to learn something!</p>`;
-                return;
-            }
-
-            filteredLogs.forEach(log => {
-                const el = document.createElement('div');
-                el.className = 'group flex gap-4 p-4 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 relative';
-                
-                const iconClass = log.subject.toLowerCase().includes('python') ? 'ph-file-py text-blue-500' : 'ph-code text-emerald-500';
-                
-                el.innerHTML = `
-                    <div class="flex-shrink-0 mt-1">
-                        <i class="ph-fill ${iconClass} text-xl"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex items-baseline justify-between gap-2 mb-1">
-                            <h3 class="font-medium">${log.subject}</h3>
-                            <span class="text-xs text-slate-500 font-mono">${log.date}</span>
-                        </div>
-                        ${log.notes ? `<p class="text-sm text-slate-600 whitespace-pre-wrap">${log.notes}</p>` : ''}
-                    </div>
-                    <button class="delete-btn absolute right-4 top-4 opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" data-id="${log.id}">
-                        <i class="ph ph-trash text-lg"></i>
-                    </button>
-                `;
-                logsContainer.appendChild(el);
-            });
-
-            // Delete Listeners
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    const id = e.currentTarget.getAttribute('data-id');
-                    if(currentUserId) {
-                        await deleteDoc(doc(db, 'users', currentUserId, 'learning_logs', id));
-                    }
-                });
-            });
-        }
-
-        // Form Submit
-        document.getElementById('log-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentUserId) return;
-
-            const btn = document.getElementById('submit-btn');
-            const date = document.getElementById('date-input').value;
-            const subject = document.getElementById('subject-input').value;
-            const notes = document.getElementById('notes-input').value;
-
-            btn.disabled = true;
-            btn.innerText = 'Saving...';
-
-            try {
-                const logsRef = collection(db, 'users', currentUserId, 'learning_logs');
-                await addDoc(logsRef, {
-                    date: date,
-                    subject: subject.trim(),
-                    notes: notes.trim(),
-                    createdAt: Date.now()
-                });
-                
-                // Reset form (keep date as today)
-                document.getElementById('subject-input').value = '';
-                document.getElementById('notes-input').value = '';
-                document.getElementById('date-input').value = todayStr;
-            } catch (err) {
-                console.error("Error adding doc: ", err);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = 'Save Progress';
-            }
-        });
-
-        document.getElementById('subject-filter').addEventListener('change', updateUI);
+      // Load data on startup
+      loadLogs();
     </script>
-</body>
+  </body>
 </html>
