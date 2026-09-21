@@ -3,12 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learning Ledger</title>
+    <title>Learning Ledger Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
       :root {
         --ink: #1c2b2d;
@@ -18,132 +15,196 @@
         --amber: #c4632c;
         --sage: #6f8a7d;
         --muted: #8a8478;
+        --hover-bg: #f3efe6;
       }
-      body { font-family: "Inter", sans-serif; background: var(--paper); color: var(--ink); }
-      h1, h2, .display { font-family: "Space Grotesk", sans-serif; }
-      .heatmap-grid { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: 3px; }
-      .day-cell { width: 12px; height: 12px; background: #ece7dc; border-radius: 2px; cursor: default; transition: transform .1s ease; }
+      .dark {
+        --ink: #f3f4f6;
+        --paper: #111827;
+        --card: #1f2937;
+        --line: #374151;
+        --amber: #f59e0b;
+        --sage: #10b981;
+        --muted: #9ca3af;
+        --hover-bg: #374151;
+      }
+      body { font-family: "Inter", sans-serif; background: var(--paper); color: var(--ink); transition: background-color 0.3s, color 0.3s; }
+      h1, h2, h3, .display { font-family: "Space Grotesk", sans-serif; }
+      
+      /* Heatmap Fixes */
+      .heatmap-grid { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-columns: 12px; grid-auto-flow: column; gap: 4px; }
+      .day-cell { width: 12px; height: 12px; background: var(--line); border-radius: 3px; cursor: default; transition: transform .1s ease, background-color 0.2s; }
       .day-cell[data-count]:not([data-count="0"]) { cursor: pointer; }
-      .day-cell:hover { transform: scale(1.35); }
+      .day-cell:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
       .day-cell.l1 { background: #d9c2a8; }
       .day-cell.l2 { background: #cf8f56; }
       .day-cell.l3 { background: var(--amber); }
       .day-cell.l4 { background: #8a3f18; }
-      .heatmap-scroll { overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-      .heatmap-scroll::-webkit-scrollbar { height: 5px; }
-      .heatmap-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-      #tooltip { position: absolute; background: var(--ink); color: #fff; padding: 5px 9px; border-radius: 5px; font-size: 11.5px; pointer-events: none; opacity: 0; transition: opacity .12s; z-index: 50; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; }
-      .loader { border: 2.5px solid #e5e0d5; border-top: 2.5px solid var(--amber); border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
+      .dark .day-cell.l1 { background: #78350f; }
+      .dark .day-cell.l2 { background: #b45309; }
+      .dark .day-cell.l3 { background: var(--amber); }
+      .dark .day-cell.l4 { background: #fcd34d; }
+      
+      .heatmap-scroll { overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin; }
+      .heatmap-scroll::-webkit-scrollbar { height: 6px; }
+      .heatmap-scroll::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+      
+      /* Modern UI Elements */
+      input, select, textarea { background: var(--card); color: var(--ink); }
+      option { background: var(--card); color: var(--ink); }
+      
+      #tooltip { position: absolute; background: var(--ink); color: var(--paper); padding: 6px 10px; border-radius: 6px; font-size: 12px; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 50; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      
+      .loader { border: 2.5px solid var(--line); border-top: 2.5px solid var(--amber); border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
-      .toast { transform: translateY(24px); opacity: 0; }
+      
+      .toast { transform: translateY(24px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
       .toast.show { transform: translateY(0); opacity: 1; }
-      .log-row:hover .del-btn { opacity: 1; }
+      
+      /* Timeline Cards */
+      .timeline-card { transition: transform 0.2s, box-shadow 0.2s; border-left: 4px solid var(--amber); }
+      .timeline-card:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); background: var(--hover-bg); }
       .del-btn { opacity: 0; transition: opacity .15s; }
+      .timeline-card:hover .del-btn { opacity: 1; }
     </style>
   </head>
   <body class="min-h-screen py-8 px-4 sm:px-8">
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
 
-      <header class="flex justify-between items-start">
+      <!-- Header & Theme Toggle -->
+      <header class="flex justify-between items-end">
         <div>
-          <h1 class="text-3xl font-semibold tracking-tight">Learning Ledger</h1>
-          <p class="text-sm mt-1" style="color: var(--muted)">Every session, logged. Consistency compounds.</p>
+          <h1 class="text-3xl font-bold tracking-tight">Learning Ledger</h1>
+          <div id="status-indicator" class="flex items-center gap-2 text-xs mt-2" style="color: var(--muted)">
+            <div class="loader" id="loading-spinner"></div>
+            <span id="status-text">Syncing data…</span>
+          </div>
         </div>
-        <div id="status-indicator" class="flex items-center gap-2 text-xs mt-2" style="color: var(--muted)">
-          <div class="loader" id="loading-spinner"></div>
-          <span id="status-text">Connecting…</span>
-        </div>
+        <button id="theme-toggle" class="p-2.5 rounded-full border hover:scale-105 transition" style="background: var(--card); border-color: var(--line)">
+          <svg id="moon-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <svg id="sun-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </button>
       </header>
 
-      <!-- Stats -->
+      <!-- Stats Grid -->
       <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="p-4 rounded-xl border" style="background: var(--card); border-color: var(--line)">
-          <div class="text-2xl font-semibold display" id="stat-streak">0</div>
-          <div class="text-xs mt-0.5" style="color: var(--muted)">Day streak</div>
+          <div class="text-3xl font-bold display" id="stat-streak">0</div>
+          <div class="text-xs mt-1 uppercase tracking-wider font-semibold" style="color: var(--muted)">Day streak</div>
         </div>
         <div class="p-4 rounded-xl border" style="background: var(--card); border-color: var(--line)">
-          <div class="text-2xl font-semibold display" id="stat-week">0</div>
-          <div class="text-xs mt-0.5" style="color: var(--muted)">Sessions this week</div>
+          <div class="text-3xl font-bold display" id="stat-week">0</div>
+          <div class="text-xs mt-1 uppercase tracking-wider font-semibold" style="color: var(--muted)">Sessions (7d)</div>
         </div>
         <div class="p-4 rounded-xl border" style="background: var(--card); border-color: var(--line)">
-          <div class="text-2xl font-semibold display" id="stat-total">0</div>
-          <div class="text-xs mt-0.5" style="color: var(--muted)">Total sessions</div>
+          <div class="text-3xl font-bold display" id="stat-total">0</div>
+          <div class="text-xs mt-1 uppercase tracking-wider font-semibold" style="color: var(--muted)">Total logged</div>
         </div>
         <div class="p-4 rounded-xl border" style="background: var(--card); border-color: var(--line)">
-          <div class="text-2xl font-semibold display" id="stat-days">0</div>
-          <div class="text-xs mt-0.5" style="color: var(--muted)">Active days</div>
+          <div class="text-3xl font-bold display" id="stat-days">0</div>
+          <div class="text-xs mt-1 uppercase tracking-wider font-semibold" style="color: var(--muted)">Active days</div>
         </div>
       </section>
 
-      <!-- Heatmap -->
-      <section class="p-6 rounded-2xl border relative" style="background: var(--card); border-color: var(--line)">
-        <h2 class="text-base font-semibold mb-4">Last 365 days</h2>
-        <div class="heatmap-scroll relative" id="heatmap-scroll-area">
-          <div class="flex gap-3">
-            <div class="flex flex-col justify-between text-[11px] py-1" style="height: 90px; color: var(--muted)">
-              <span>Mon</span><span>Wed</span><span>Fri</span>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Forms -->
+        <div class="lg:col-span-1 space-y-6">
+          
+          <!-- Subject Manager -->
+          <section class="p-6 rounded-2xl border" style="background: var(--card); border-color: var(--line)">
+            <h2 class="text-lg font-bold mb-4">1. Add Subjects</h2>
+            <form id="subject-form" class="flex gap-2">
+              <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 px-3 py-2 text-sm border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
+              <button type="submit" class="text-white text-sm font-medium px-4 py-2 rounded-lg transition" style="background: var(--ink)">Add</button>
+            </form>
+            <div id="subject-list" class="mt-4 flex flex-wrap gap-2 text-xs">
+              <!-- Subject tags will render here -->
             </div>
-            <div id="heatmap" class="heatmap-grid pb-1"></div>
-          </div>
-        </div>
-        <div id="tooltip"></div>
-        <div class="flex items-center justify-end text-[11px] mt-2 gap-1.5" style="color: var(--muted)">
-          <span>Less</span>
-          <div class="w-2.5 h-2.5 rounded-sm" style="background:#ece7dc"></div>
-          <div class="w-2.5 h-2.5 rounded-sm" style="background:#d9c2a8"></div>
-          <div class="w-2.5 h-2.5 rounded-sm" style="background:#cf8f56"></div>
-          <div class="w-2.5 h-2.5 rounded-sm" style="background:#c4632c"></div>
-          <div class="w-2.5 h-2.5 rounded-sm" style="background:#8a3f18"></div>
-          <span>More</span>
-        </div>
-      </section>
+          </section>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Form -->
-        <section class="md:col-span-1 p-6 rounded-2xl border h-fit" style="background: var(--card); border-color: var(--line)">
-          <h2 class="text-base font-semibold mb-4">Log a session</h2>
-          <form id="log-form" class="space-y-3">
-            <div>
-              <label class="block text-xs font-medium mb-1" style="color: var(--muted)">Date</label>
-              <input type="date" id="log-date" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium mb-1" style="color: var(--muted)">Course</label>
-              <input type="text" id="log-course" placeholder="e.g. React, Python" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium mb-1" style="color: var(--muted)">Topic covered</label>
-              <input type="text" id="log-topic" placeholder="e.g. Hooks, Loops" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium mb-1" style="color: var(--muted)">Minutes spent</label>
-              <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
-            </div>
-            <div>
-              <label class="block text-xs font-medium mb-1" style="color: var(--muted)">Notes (optional)</label>
-              <textarea id="log-notes" rows="2" placeholder="Brief summary…" class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 resize-none" style="border-color: var(--line); --tw-ring-color: var(--amber)"></textarea>
-            </div>
-            <button type="submit" id="submit-btn" class="w-full text-white font-medium py-2.5 rounded-lg transition flex justify-center items-center gap-2" style="background: var(--ink)">
-              Save session
-            </button>
-          </form>
-        </section>
+          <!-- Session Logger -->
+          <section class="p-6 rounded-2xl border" style="background: var(--card); border-color: var(--line)">
+            <h2 class="text-lg font-bold mb-4">2. Log Session</h2>
+            <form id="log-form" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--muted)">Date</label>
+                <input type="date" id="log-date" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--muted)">Subject</label>
+                <select id="log-subject" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 appearance-none" style="border-color: var(--line); --tw-ring-color: var(--amber)">
+                  <option value="" disabled selected>Select a subject first...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--muted)">Topic covered</label>
+                <input type="text" id="log-topic" placeholder="e.g. Hooks, Data Cleaning" required class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--muted)">Minutes</label>
+                  <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2" style="border-color: var(--line); --tw-ring-color: var(--amber)" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5" style="color: var(--muted)">Notes</label>
+                <textarea id="log-notes" rows="2" placeholder="Key takeaways..." class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 resize-none" style="border-color: var(--line); --tw-ring-color: var(--amber)"></textarea>
+              </div>
+              <button type="submit" id="submit-btn" class="w-full text-white font-semibold py-3 rounded-lg transition" style="background: var(--ink)">
+                Save Session
+              </button>
+            </form>
+          </section>
+        </div>
 
-        <!-- Logs -->
-        <section class="md:col-span-2 p-6 rounded-2xl border" style="background: var(--card); border-color: var(--line)">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-semibold">Recent sessions</h2>
-            <input type="text" id="filter-course" placeholder="Filter by course…" class="text-sm px-3 py-1.5 border rounded-lg outline-none w-40" style="border-color: var(--line)" />
-          </div>
-          <div id="logs-container" class="space-y-2 max-h-[440px] overflow-y-auto pr-1">
-            <p class="text-sm italic" style="color: var(--muted)">Loading sessions…</p>
-          </div>
-        </section>
+        <!-- Right Column: Interactive Dashboard -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <section class="p-6 rounded-2xl border" style="background: var(--card); border-color: var(--line)">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <h2 class="text-xl font-bold">Interactive Dashboard</h2>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium" style="color: var(--muted)">Filter by:</span>
+                <select id="filter-subject" class="text-sm font-medium px-3 py-1.5 border rounded-lg outline-none w-40 sm:w-48" style="border-color: var(--line)">
+                  <option value="ALL">All Subjects</option>
+                  <!-- Filters injected here -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Dynamic Heatmap -->
+            <div class="mb-8 relative">
+              <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+                Activity Heatmap <span id="heatmap-title-sub" class="text-xs px-2 py-0.5 rounded-full" style="background: var(--line); color: var(--muted)">All</span>
+              </h3>
+              <div class="heatmap-scroll relative" id="heatmap-scroll-area">
+                <div class="flex gap-3">
+                  <div class="flex flex-col justify-between text-[11px] py-1" style="height: 112px; color: var(--muted)">
+                    <span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span>
+                  </div>
+                  <div id="heatmap" class="heatmap-grid pb-1"></div>
+                </div>
+              </div>
+              <div id="tooltip"></div>
+            </div>
+
+            <!-- Modern Timeline Logs -->
+            <div>
+              <h3 class="text-sm font-semibold mb-3">Recent Timeline</h3>
+              <div id="logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 pb-2">
+                <p class="text-sm italic" style="color: var(--muted)">Loading timeline…</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
       </div>
     </div>
 
-    <div id="toast" class="toast fixed bottom-4 right-4 text-white px-5 py-3 rounded-lg shadow-lg z-50 text-sm" style="background: var(--ink)">
-      <span id="toast-msg">Saved</span>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast fixed bottom-6 right-6 text-white font-medium px-6 py-3 rounded-xl shadow-2xl z-50 text-sm flex items-center gap-2" style="background: var(--ink)">
+      <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span id="toast-msg">Saved successfully</span>
     </div>
 
     <script type="module">
@@ -165,32 +226,114 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const logsCol = collection(db, "logs");
+      const subsCol = collection(db, "subjects");
 
+      // DOM Elements
       const statusText = document.getElementById("status-text");
       const spinner = document.getElementById("loading-spinner");
       const dateInput = document.getElementById("log-date");
+      const logSubjectSelect = document.getElementById("log-subject");
+      const filterSubjectSelect = document.getElementById("filter-subject");
+      const logsContainer = document.getElementById("logs-container");
+      
       dateInput.valueAsDate = new Date();
 
       let allLogs = [];
+      let allSubjects = [];
 
+      // Dark Mode Logic
+      const themeToggle = document.getElementById('theme-toggle');
+      const moonIcon = document.getElementById('moon-icon');
+      const sunIcon = document.getElementById('sun-icon');
+      
+      function updateThemeIcon() {
+        if (document.body.classList.contains('dark')) {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        } else {
+          moonIcon.classList.add('hidden');
+          sunIcon.classList.remove('hidden');
+        }
+      }
+
+      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark');
+      }
+      updateThemeIcon();
+
+      themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+        updateThemeIcon();
+      });
+
+      // Utilities
       function showToast(msg) {
         const t = document.getElementById("toast");
         document.getElementById("toast-msg").textContent = msg;
         t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2200);
+        setTimeout(() => t.classList.remove("show"), 2500);
+      }
+      function dayKey(d) { return new Date(d).toISOString().slice(0, 10); }
+
+      // Core Functions
+      async function loadSubjects() {
+        const snap = await getDocs(query(subsCol, orderBy("name", "asc")));
+        allSubjects = [];
+        snap.forEach(d => allSubjects.push({ id: d.id, ...d.data() }));
+        renderSubjectUI();
       }
 
-      function dayKey(d) {
-        const dt = new Date(d);
-        return dt.toISOString().slice(0, 10);
+      function renderSubjectUI() {
+        // Render Tags
+        const list = document.getElementById("subject-list");
+        list.innerHTML = allSubjects.map(s => 
+          `<span class="px-2.5 py-1 rounded-md border font-medium" style="background: var(--paper); border-color: var(--line)">${s.name}</span>`
+        ).join('');
+
+        // Populate Dropdowns
+        const logOpts = `<option value="" disabled selected>Select a subject...</option>` + 
+                        allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        logSubjectSelect.innerHTML = logOpts;
+
+        const currentFilter = filterSubjectSelect.value;
+        const filterOpts = `<option value="ALL">All Subjects</option>` + 
+                           allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        filterSubjectSelect.innerHTML = filterOpts;
+        filterSubjectSelect.value = currentFilter || "ALL";
+      }
+
+      async function loadLogs() {
+        try {
+          const q = query(logsCol, orderBy("timestamp", "desc"));
+          const snap = await getDocs(q);
+          allLogs = [];
+          snap.forEach((d) => allLogs.push({ id: d.id, ...d.data() }));
+
+          applyFilter();
+          spinner.style.display = "none";
+          statusText.textContent = "Synced";
+        } catch (err) {
+          console.error(err);
+          statusText.textContent = "Connection error";
+        }
+      }
+
+      function applyFilter() {
+        const filterVal = filterSubjectSelect.value;
+        document.getElementById("heatmap-title-sub").textContent = filterVal === "ALL" ? "All Subjects" : filterVal;
+        
+        const filteredLogs = filterVal === "ALL" ? allLogs : allLogs.filter(l => l.subject === filterVal);
+        
+        const counts = computeStats(filteredLogs); // Updates top stats based on filter!
+        renderHeatmap(counts);
+        renderLogs(filteredLogs);
       }
 
       function computeStats(logs) {
         const counts = {};
         logs.forEach((l) => { const k = dayKey(l.timestamp); counts[k] = (counts[k] || 0) + 1; });
-        const activeDays = Object.keys(counts).length;
-
-        // streak: consecutive days up to today (or yesterday if today not yet logged)
+        
         let streak = 0;
         let cursor = new Date();
         cursor.setHours(0, 0, 0, 0);
@@ -207,29 +350,44 @@
         document.getElementById("stat-streak").textContent = streak;
         document.getElementById("stat-week").textContent = weekCount;
         document.getElementById("stat-total").textContent = logs.length;
-        document.getElementById("stat-days").textContent = activeDays;
+        document.getElementById("stat-days").textContent = Object.keys(counts).length;
         return counts;
       }
 
       function renderHeatmap(counts) {
         const grid = document.getElementById("heatmap");
         grid.innerHTML = "";
-        const tooltip = document.getElementById("tooltip");
         const scrollArea = document.getElementById("heatmap-scroll-area");
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        
+        // Exactly 364 days ago (52 weeks)
         const start = new Date(today);
         start.setDate(start.getDate() - 364);
-        // align start to Monday
-        const offset = (start.getDay() + 6) % 7;
-        start.setDate(start.getDate() - offset);
+        
+        // CSS Grid auto-flow expects items top-to-bottom, left-to-right.
+        // We need 7 rows (Mon-Sun).
+        // Let's pad the start of the grid with empty blocks to align the first actual day.
+        // JS getDay(): 0=Sun, 1=Mon... We want Mon=0, Tue=1... Sun=6.
+        let offset = start.getDay() - 1;
+        if (offset === -1) offset = 6; // Sunday
+        
+        for (let i = 0; i < offset; i++) {
+          const spacer = document.createElement("div");
+          spacer.style.width = "12px"; spacer.style.height = "12px";
+          grid.appendChild(spacer);
+        }
+
+        const tooltip = document.getElementById("tooltip");
 
         for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
           const key = dayKey(d);
           const count = counts[key] || 0;
           const cell = document.createElement("div");
-          cell.classList.add("day-cell");
+          cell.className = "day-cell";
           cell.dataset.count = count;
+          
           if (count >= 4) cell.classList.add("l4");
           else if (count === 3) cell.classList.add("l3");
           else if (count === 2) cell.classList.add("l2");
@@ -238,7 +396,7 @@
           cell.addEventListener("mouseenter", (e) => {
             const rect = e.target.getBoundingClientRect();
             const areaRect = scrollArea.getBoundingClientRect();
-            tooltip.textContent = `${count} session${count === 1 ? "" : "s"} — ${new Date(d).toLocaleDateString()}`;
+            tooltip.textContent = `${count} session${count === 1 ? "" : "s"} on ${new Date(d).toLocaleDateString(undefined, {month:'short', day:'numeric'})}`;
             tooltip.style.left = rect.left - areaRect.left + scrollArea.scrollLeft + rect.width / 2 + "px";
             tooltip.style.top = rect.top - areaRect.top + "px";
             tooltip.style.opacity = "1";
@@ -246,38 +404,38 @@
           cell.addEventListener("mouseleave", () => { tooltip.style.opacity = "0"; });
           grid.appendChild(cell);
         }
-        scrollArea.scrollLeft = scrollArea.scrollWidth;
+        
+        // Auto scroll to latest
+        requestAnimationFrame(() => { scrollArea.scrollLeft = scrollArea.scrollWidth; });
       }
 
-      function renderLogs(logs, filter) {
-        const container = document.getElementById("logs-container");
-        const filtered = filter
-          ? logs.filter((l) => l.course.toLowerCase().includes(filter.toLowerCase()))
-          : logs;
-
-        if (filtered.length === 0) {
-          container.innerHTML = `<p class="text-sm italic" style="color: var(--muted)">No sessions yet — log your first one.</p>`;
+      function renderLogs(logs) {
+        if (logs.length === 0) {
+          logsContainer.innerHTML = `<div class="p-6 text-center border rounded-xl" style="border-color: var(--line); color: var(--muted)">No sessions found for this view.</div>`;
           return;
         }
 
-        container.innerHTML = "";
-        filtered.forEach((log) => {
-          const row = document.createElement("div");
-          row.className = "log-row flex items-start justify-between gap-3 p-3 rounded-lg border";
-          row.style.borderColor = "var(--line)";
-          const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-          row.innerHTML = `
-            <div class="min-w-0">
-              <div class="flex items-baseline gap-2 flex-wrap">
-                <span class="font-medium">${log.course}</span>
-                <span class="text-xs" style="color: var(--muted)">${dateStr}${log.minutes ? " · " + log.minutes + " min" : ""}</span>
+        logsContainer.innerHTML = logs.map(log => {
+          const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+          return `
+            <div class="timeline-card p-4 rounded-xl border flex items-start justify-between gap-4" style="background: var(--card); border-color: var(--line)">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--amber)">${log.subject}</span>
+                  <span class="text-xs font-medium" style="color: var(--muted)">• ${dateStr}</span>
+                </div>
+                <h4 class="text-sm font-semibold text-wrap break-words">${log.topic}</h4>
+                ${log.minutes ? `<div class="text-xs mt-1.5 inline-block px-2 py-0.5 rounded border" style="background: var(--paper); border-color: var(--line)">⏱ ${log.minutes} min</div>` : ""}
+                ${log.notes ? `<p class="text-sm mt-2 leading-relaxed text-wrap break-words" style="color: var(--muted)">${log.notes}</p>` : ""}
               </div>
-              <div class="text-sm mt-0.5">${log.topic}</div>
-              ${log.notes ? `<div class="text-xs mt-1" style="color: var(--muted)">${log.notes}</div>` : ""}
+              <button class="del-btn text-xs font-medium px-2.5 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition" data-id="${log.id}">Delete</button>
             </div>
-            <button class="del-btn text-xs px-2 py-1 rounded" style="color: var(--amber)" data-id="${log.id}">Remove</button>
           `;
-          row.querySelector(".del-btn").addEventListener("click", async (e) => {
+        }).join('');
+
+        // Attach delete listeners
+        document.querySelectorAll(".del-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
             const id = e.target.dataset.id;
             try {
               await deleteDoc(doc(db, "logs", id));
@@ -285,69 +443,71 @@
               loadLogs();
             } catch (err) {
               console.error(err);
-              showToast("Couldn't remove — try again");
+              showToast("Error deleting session");
             }
           });
-          container.appendChild(row);
         });
       }
 
-      async function loadLogs() {
+      // Event Listeners
+      filterSubjectSelect.addEventListener("change", applyFilter);
+
+      document.getElementById("subject-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("new-subject");
+        const name = input.value.trim();
+        if(!name) return;
+        
         try {
-          const q = query(logsCol, orderBy("timestamp", "desc"));
-          const snap = await getDocs(q);
-          allLogs = [];
-          snap.forEach((d) => allLogs.push({ id: d.id, ...d.data() }));
-
-          const counts = computeStats(allLogs);
-          renderHeatmap(counts);
-          renderLogs(allLogs, document.getElementById("filter-course").value);
-
-          spinner.style.display = "none";
-          statusText.textContent = "Synced";
+          await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
+          input.value = "";
+          showToast("Subject added");
+          loadSubjects();
         } catch (err) {
           console.error(err);
-          spinner.style.display = "none";
-          statusText.textContent = "Connection error";
+          showToast("Couldn't add subject");
         }
-      }
-
-      document.getElementById("filter-course").addEventListener("input", (e) => {
-        renderLogs(allLogs, e.target.value);
       });
 
       document.getElementById("log-form").addEventListener("submit", async (e) => {
         e.preventDefault();
         const btn = document.getElementById("submit-btn");
-        const course = document.getElementById("log-course").value.trim();
+        const subject = logSubjectSelect.value;
         const topic = document.getElementById("log-topic").value.trim();
         const notes = document.getElementById("log-notes").value.trim();
         const minutes = document.getElementById("log-minutes").value;
         const dateVal = dateInput.valueAsDate || new Date();
         const timestamp = dateVal.toISOString();
 
-        btn.disabled = true;
-        btn.textContent = "Saving…";
+        if(!subject) { alert("Please add and select a subject first."); return; }
+
+        btn.disabled = true; btn.textContent = "Saving…";
         try {
           await addDoc(logsCol, {
-            course, topic, notes: notes || null,
+            subject, topic, notes: notes || null,
             minutes: minutes ? Number(minutes) : null,
             timestamp,
           });
-          document.getElementById("log-form").reset();
+          document.getElementById("log-topic").value = "";
+          document.getElementById("log-notes").value = "";
+          document.getElementById("log-minutes").value = "";
           dateInput.valueAsDate = new Date();
-          showToast("Session logged");
+          showToast("Session logged successfully!");
           loadLogs();
         } catch (err) {
           console.error(err);
-          showToast("Couldn't save — check console");
+          showToast("Couldn't save session");
         } finally {
-          btn.disabled = false;
-          btn.textContent = "Save session";
+          btn.disabled = false; btn.textContent = "Save Session";
         }
       });
 
-      loadLogs();
+      // Initialize
+      async function init() {
+        await loadSubjects();
+        await loadLogs();
+      }
+      init();
     </script>
   </body>
 </html>
