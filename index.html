@@ -17,9 +17,9 @@
             },
             colors: {
               brand: {
-                light: '#a7f3d0', // emerald-200
-                DEFAULT: '#10b981', // emerald-500
-                dark: '#047857', // emerald-700
+                light: '#a7f3d0',
+                DEFAULT: '#10b981',
+                dark: '#047857',
               }
             },
             animation: {
@@ -42,14 +42,12 @@
       .day-cell[data-count]:not([data-count="0"]) { cursor: pointer; }
       .day-cell:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
       
-      /* Light Mode Heatmap (Green) */
       .day-cell.l0 { background-color: #f1f5f9; } 
       .day-cell.l1 { background-color: #a7f3d0; } 
       .day-cell.l2 { background-color: #34d399; } 
       .day-cell.l3 { background-color: #10b981; } 
       .day-cell.l4 { background-color: #047857; } 
       
-      /* Dark Mode Heatmap (Green) */
       .dark .day-cell.l0 { background-color: #1f2937; } 
       .dark .day-cell.l1 { background-color: #064e3b; } 
       .dark .day-cell.l2 { background-color: #047857; } 
@@ -61,7 +59,8 @@
       .heatmap-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
       .dark .heatmap-scroll::-webkit-scrollbar-thumb { background-color: #4b5563; }
       
-      #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 50; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; }
+      /* Updated Tooltip CSS - Placed at the highest level */
+      #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 9999; white-space: nowrap; transform: translate(-50%, -100%); }
       
       .loader { border: 2.5px solid #e2e8f0; border-top: 2.5px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
       .dark .loader { border-color: #374151; border-top-color: #10b981; }
@@ -74,7 +73,7 @@
       .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
   </head>
-  <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300 font-sans overflow-x-hidden w-full">
+  <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300 font-sans overflow-x-hidden w-full relative">
     
     <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-[400px] bg-brand/10 dark:bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
@@ -193,8 +192,6 @@
                   <div id="heatmap" class="heatmap-grid pb-1"></div>
                 </div>
               </div>
-              
-              <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl"></div>
             </div>
 
             <div>
@@ -208,6 +205,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Move tooltip OUTSIDE of the hidden containers entirely -->
+    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl"></div>
 
     <div id="toast" class="toast fixed bottom-6 right-6 left-6 sm:left-auto text-white font-medium px-6 py-4 rounded-2xl shadow-2xl z-50 text-sm flex items-center gap-3 bg-slate-900 dark:bg-white dark:text-gray-900">
       <div class="w-6 h-6 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center">
@@ -362,8 +362,8 @@
       function renderHeatmap(counts) {
         const grid = document.getElementById("heatmap");
         grid.innerHTML = "";
-        const scrollArea = document.getElementById("heatmap-scroll-area");
         const tooltip = document.getElementById("tooltip");
+        const scrollArea = document.getElementById("heatmap-scroll-area");
         
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -391,25 +391,24 @@
 
           const triggerTooltip = (e) => {
             clearTimeout(tooltipTimeout);
+            
+            // Calculate position directly from the absolute viewport window so it never clips
             const rect = e.target.getBoundingClientRect();
-            const areaRect = scrollArea.getBoundingClientRect();
             
             tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'})}`;
-            tooltip.style.left = rect.left - areaRect.left + scrollArea.scrollLeft + rect.width / 2 + "px";
-            tooltip.style.top = rect.top - areaRect.top + "px";
+            tooltip.style.left = (rect.left + window.scrollX + (rect.width / 2)) + "px";
+            tooltip.style.top = (rect.top + window.scrollY - 6) + "px";
             tooltip.style.opacity = "1";
           };
 
           const hideTooltip = () => { tooltip.style.opacity = "0"; };
 
-          // Standard Hover
           cell.addEventListener("mouseenter", triggerTooltip);
           cell.addEventListener("mouseleave", hideTooltip);
           
-          // Mobile Tap Support
           cell.addEventListener("click", (e) => {
             triggerTooltip(e);
-            tooltipTimeout = setTimeout(hideTooltip, 2000); // Auto dismiss after 2s on mobile
+            tooltipTimeout = setTimeout(hideTooltip, 2000); 
           });
 
           grid.appendChild(cell);
