@@ -6,6 +6,8 @@
     <title>Learning Ledger Dashboard</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Added Phosphor Icons for a premium look -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -24,10 +26,15 @@
             },
             animation: {
               'fade-in': 'fadeIn 0.4s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
             },
             keyframes: {
               fadeIn: {
                 '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               }
             }
@@ -54,12 +61,11 @@
       .dark .day-cell.l3 { background-color: #10b981; } 
       .dark .day-cell.l4 { background-color: #6ee7b7; } 
       
-      .heatmap-scroll { overflow-x: auto; padding-bottom: 12px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
-      .heatmap-scroll::-webkit-scrollbar { height: 6px; }
-      .heatmap-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
-      .dark .heatmap-scroll::-webkit-scrollbar-thumb { background-color: #4b5563; }
+      .custom-scrollbar { overflow-x: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+      .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b5563; }
       
-      /* Updated Tooltip CSS - Placed at the highest level */
       #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 9999; white-space: nowrap; transform: translate(-50%, -100%); }
       
       .loader { border: 2.5px solid #e2e8f0; border-top: 2.5px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
@@ -68,9 +74,6 @@
       
       .toast { transform: translateY(24px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
       .toast.show { transform: translateY(0); opacity: 1; }
-      
-      .hide-scroll::-webkit-scrollbar { display: none; }
-      .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
   </head>
   <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300 font-sans overflow-x-hidden w-full relative">
@@ -81,34 +84,48 @@
 
       <header class="flex justify-between items-center backdrop-blur-sm bg-white/50 dark:bg-gray-900/50 p-4 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm w-full">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-display bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Learning Ledger</h1>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-display bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-2">
+            <i class="ph-fill ph-book-open text-brand"></i> Learning Ledger
+          </h1>
           <div id="status-indicator" class="flex items-center gap-2 text-xs mt-1 text-slate-500 dark:text-gray-400 font-medium">
             <div class="loader" id="loading-spinner"></div>
             <span id="status-text">Syncing database…</span>
           </div>
         </div>
-        <button id="theme-toggle" class="shrink-0 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md dark:hover:bg-gray-700 transition-all duration-200 text-slate-700 dark:text-gray-200">
-          <svg id="moon-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-          <svg id="sun-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <button id="theme-toggle" class="shrink-0 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md dark:hover:bg-gray-700 transition-all duration-200 text-slate-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/50">
+          <i id="moon-icon" class="ph-fill ph-moon text-lg hidden"></i>
+          <i id="sun-icon" class="ph-fill ph-sun text-lg text-amber-500"></i>
         </button>
       </header>
 
       <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-md transition-shadow">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Day streak</div>
+            <i class="ph-fill ph-fire text-orange-500 text-lg"></i>
+          </div>
           <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-streak">0</div>
-          <div class="text-[10px] sm:text-xs mt-2 uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Day streak 🔥</div>
         </div>
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-md transition-shadow">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 100ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Past 7 Days</div>
+            <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i>
+          </div>
           <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-week">0</div>
-          <div class="text-[10px] sm:text-xs mt-2 uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Past 7 Days 📈</div>
         </div>
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-md transition-shadow">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Total Logged</div>
+            <i class="ph-fill ph-books text-brand text-lg"></i>
+          </div>
           <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-total">0</div>
-          <div class="text-[10px] sm:text-xs mt-2 uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Total Logged 📚</div>
         </div>
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-md transition-shadow">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 300ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Active Days</div>
+            <i class="ph-fill ph-calendar-check text-purple-500 text-lg"></i>
+          </div>
           <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-days">0</div>
-          <div class="text-[10px] sm:text-xs mt-2 uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Active Days 🗓️</div>
         </div>
       </section>
 
@@ -116,50 +133,54 @@
         
         <div class="lg:col-span-4 space-y-6 w-full min-w-0">
           
-          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden transition-all hover:shadow-md">
             <h2 class="text-lg font-bold font-display mb-4 flex items-center gap-2">
-              <span class="bg-brand text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="ph-bold ph-folder-plus text-lg"></i>
+              </div>
               Add Subjects
             </h2>
             <form id="subject-form" class="flex flex-row items-center gap-2 w-full">
-              <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 min-w-0 w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white placeholder-slate-400" />
-              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-slate-800 dark:bg-brand dark:hover:bg-brand-dark dark:text-white">
+              <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 min-w-0 w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
+              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-slate-800 dark:bg-brand dark:hover:bg-brand-dark dark:text-white flex items-center gap-2">
                 Add
               </button>
             </form>
             <div id="subject-list" class="mt-5 flex flex-wrap gap-2 text-xs"></div>
           </section>
 
-          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full">
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full transition-all hover:shadow-md">
             <h2 class="text-lg font-bold font-display mb-5 flex items-center gap-2">
-              <span class="bg-brand text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="ph-bold ph-pencil-simple-line text-lg"></i>
+              </div>
               Log Session
             </h2>
             <form id="log-form" class="space-y-4">
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400">Date</label>
-                <input type="date" id="log-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white" />
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-calendar"></i> Date</label>
+                <input type="date" id="log-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white" />
               </div>
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400">Subject</label>
-                <select id="log-subject" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white cursor-pointer">
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-bookmarks"></i> Subject</label>
+                <select id="log-subject" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white cursor-pointer">
                   <option value="" disabled selected>Select a subject...</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400">Topic covered</label>
-                <input type="text" id="log-topic" placeholder="e.g. Array Methods" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white placeholder-slate-400" />
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-text-t"></i> Topic covered</label>
+                <input type="text" id="log-topic" placeholder="e.g. Array Methods" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
               </div>
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400">Minutes</label>
-                <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white placeholder-slate-400" />
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-clock"></i> Minutes</label>
+                <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
               </div>
               <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400">Notes (Optional)</label>
-                <textarea id="log-notes" rows="2" placeholder="Key takeaways..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:ring-2 focus:ring-brand/50 transition-all dark:text-white placeholder-slate-400 resize-none"></textarea>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-article"></i> Notes (Optional)</label>
+                <textarea id="log-notes" rows="2" placeholder="Key takeaways..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400 resize-none custom-scrollbar"></textarea>
               </div>
-              <button type="submit" id="submit-btn" class="w-full mt-2 font-semibold py-3.5 rounded-xl transition-all shadow-md bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200">
-                Save Session
+              <button type="submit" id="submit-btn" class="w-full mt-2 font-semibold py-3.5 rounded-xl transition-all shadow-md bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 flex items-center justify-center gap-2">
+                <i class="ph-bold ph-check-circle"></i> Save Session
               </button>
             </form>
           </section>
@@ -169,10 +190,12 @@
           
           <section class="p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full min-w-0">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <h2 class="text-xl sm:text-2xl font-bold font-display">Activity Matrix</h2>
-              <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-950 p-1.5 rounded-xl border border-slate-200 dark:border-gray-800 shrink-0">
-                <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400 pl-2">Filter</span>
-                <select id="filter-subject" class="text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1.5 rounded-lg bg-white dark:bg-gray-800 border-none shadow-sm outline-none w-32 sm:w-48 text-slate-700 dark:text-gray-200 cursor-pointer">
+              <h2 class="text-xl sm:text-2xl font-bold font-display flex items-center gap-2">
+                <i class="ph-fill ph-squares-four text-brand"></i> Activity Matrix
+              </h2>
+              <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-950 p-1.5 rounded-xl border border-slate-200 dark:border-gray-800 shrink-0 focus-within:ring-2 focus-within:ring-brand/20 transition-all">
+                <i class="ph-bold ph-funnel text-slate-400 pl-2"></i>
+                <select id="filter-subject" class="text-xs sm:text-sm font-semibold px-1 sm:px-2 py-1.5 rounded-lg bg-white dark:bg-gray-800 border-none shadow-sm outline-none w-32 sm:w-48 text-slate-700 dark:text-gray-200 cursor-pointer">
                   <option value="ALL">All Subjects</option>
                 </select>
               </div>
@@ -184,7 +207,7 @@
                 <span id="heatmap-title-sub" class="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md bg-brand/10 text-brand font-bold">All</span>
               </h3>
               
-              <div class="heatmap-scroll relative w-full" id="heatmap-scroll-area">
+              <div class="custom-scrollbar pb-3 relative w-full" id="heatmap-scroll-area">
                 <div class="flex gap-2 sm:gap-3">
                   <div class="flex flex-col justify-between text-[10px] sm:text-[11px] font-medium py-1 text-slate-400 dark:text-gray-500 shrink-0" style="height: 119px;">
                     <span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span>
@@ -195,8 +218,11 @@
             </div>
 
             <div>
-              <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300">Recent Timeline</h3>
-              <div id="logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 hide-scroll pb-2">
+              <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                <i class="ph-bold ph-clock-counter-clockwise"></i> Recent Timeline
+              </h3>
+              <!-- Applied custom-scrollbar class here instead of hide-scroll for better UX -->
+              <div id="logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-2">
                 <p class="text-sm italic text-slate-400 dark:text-gray-500">Loading timeline…</p>
               </div>
             </div>
@@ -206,12 +232,11 @@
       </div>
     </div>
 
-    <!-- Move tooltip OUTSIDE of the hidden containers entirely -->
-    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl"></div>
+    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl border border-slate-700 dark:border-gray-200"></div>
 
     <div id="toast" class="toast fixed bottom-6 right-6 left-6 sm:left-auto text-white font-medium px-6 py-4 rounded-2xl shadow-2xl z-50 text-sm flex items-center gap-3 bg-slate-900 dark:bg-white dark:text-gray-900">
       <div class="w-6 h-6 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center">
-        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        <i class="ph-bold ph-check text-green-500"></i>
       </div>
       <span id="toast-msg">Saved successfully</span>
     </div>
@@ -294,7 +319,7 @@
       function renderSubjectUI() {
         const list = document.getElementById("subject-list");
         list.innerHTML = allSubjects.map(s => 
-          `<span class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm">${s.name}</span>`
+          `<span class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm flex items-center gap-1.5"><i class="ph ph-hash text-slate-400"></i>${s.name}</span>`
         ).join('');
 
         const logOpts = `<option value="" disabled selected>Select a subject...</option>` + 
@@ -392,7 +417,6 @@
           const triggerTooltip = (e) => {
             clearTimeout(tooltipTimeout);
             
-            // Calculate position directly from the absolute viewport window so it never clips
             const rect = e.target.getBoundingClientRect();
             
             tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'})}`;
@@ -419,7 +443,7 @@
 
       function renderLogs(logs) {
         if (logs.length === 0) {
-          logsContainer.innerHTML = `<div class="p-8 text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium">No sessions found. Time to log one!</div>`;
+          logsContainer.innerHTML = `<div class="p-8 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium bg-white/50 dark:bg-gray-900/50"><i class="ph ph-ghost text-4xl mb-2 text-slate-300 dark:text-gray-600"></i> No sessions found. Time to log one!</div>`;
           return;
         }
 
@@ -433,14 +457,16 @@
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-2 mb-1.5">
-                    <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 px-2 py-0.5 rounded-md">${log.subject}</span>
-                    <span class="text-xs font-semibold text-slate-400 dark:text-gray-500">• ${dateStr}</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 px-2 py-0.5 rounded-md flex items-center gap-1"><i class="ph-bold ph-bookmark-simple"></i>${log.subject}</span>
+                    <span class="text-xs font-semibold text-slate-400 dark:text-gray-500 flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i>${dateStr}</span>
                   </div>
                   <h4 class="text-base font-bold text-slate-800 dark:text-white truncate whitespace-normal">${log.topic}</h4>
-                  ${log.minutes ? `<div class="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 font-semibold text-slate-600 dark:text-gray-400"><svg class="w-3 h-3 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>${log.minutes} min</div>` : ""}
-                  ${log.notes ? `<p class="text-sm mt-3 leading-relaxed text-slate-600 dark:text-gray-400 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 break-words">${log.notes}</p>` : ""}
+                  ${log.minutes ? `<div class="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 font-semibold text-slate-600 dark:text-gray-400"><i class="ph-bold ph-hourglass-high text-brand"></i>${log.minutes} min</div>` : ""}
+                  ${log.notes ? `<p class="text-sm mt-3 leading-relaxed text-slate-600 dark:text-gray-400 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 break-words flex gap-2"><i class="ph-fill ph-quotes text-slate-300 dark:text-gray-700 text-lg shrink-0"></i>${log.notes}</p>` : ""}
                 </div>
-                <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 shrink-0" data-id="${log.id}">Delete</button>
+                <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 shrink-0 flex items-center gap-1" data-id="${log.id}">
+                  <i class="ph-bold ph-trash"></i> Delete
+                </button>
               </div>
             </div>
           `;
@@ -449,7 +475,7 @@
         document.querySelectorAll(".group button").forEach(btn => {
           btn.addEventListener("click", async (e) => {
             if(!confirm("Delete this session?")) return;
-            const id = e.target.dataset.id;
+            const id = e.currentTarget.dataset.id;
             try {
               await deleteDoc(doc(db, "logs", id));
               showToast("Session removed");
@@ -493,7 +519,8 @@
 
         if(!subject) { alert("Please add and select a subject first."); return; }
 
-        btn.disabled = true; btn.textContent = "Saving…";
+        btn.disabled = true; 
+        btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saving…`;
         try {
           await addDoc(logsCol, {
             subject, topic, notes: notes || null,
@@ -510,7 +537,8 @@
           console.error(err);
           showToast("Couldn't save session");
         } finally {
-          btn.disabled = false; btn.textContent = "Save Session";
+          btn.disabled = false; 
+          btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> Save Session`;
         }
       });
 
