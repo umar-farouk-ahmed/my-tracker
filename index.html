@@ -1,762 +1,560 @@
 <!doctype html>
-<html lang="en">
- <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260924-05-f84ad47","C":{"Abril Fatface":"YACgEZbkUVE,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo":"YACgEZulLoA,0","Arial Narrow":"YAGyDvJ_4Ts,0","Arial Rounded MT Bold":"YAFcfoaHu-s,0","Arial":"YAGyDvJ_4Ts,0","Avenir Next":"YAFcfmNq6UY,0","Baloo 2":"YADK30bC6HQ,0","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Broken Glyph":"YADZ-exUkv0,0","Canva Sans":"YAFdJjTk5UU,1","Caveat":"YALBs2ploWQ,0","Comic Sans MS":"YAFcfvtOAUY,1","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","Courier Prime":"YAD1aFjegN8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAFdJpU7Kkk,0","Georgia":"YAGzXkO0pEM,0","Ghost Mono":"YAHQutsX00Q,0","Hanken Grotesk":"YAFcfhwp99E,0","Helvetica Neue":"YAFcf6CtJfI,0","Helvetica":"YAFcf6CtJfI,0","IBM Plex Mono":"YAFdJkmvhGI,0","Impact":"YAFcfnjI7Vk,0","Instrument Serif":"YAHFeOnZNEk,0","Inter":"YAFdJvSyp_k,3","Iowan Old Style":"YAGNIFa8j9o,0","Jacques Francois":"YADK3zbC6RM,0","JetBrains Mono":"YAFdJksXcAk,0","Josefin Sans":"YAFdJjvw9Ps,0","Lato":"YAFdJuFCnaw,0","Libre Baskerville":"YACgEUFdPdA,0","Lobster":"YAD8SnSjSFI,0","Lora":"YACgEXvxf8Q,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YAFdtQi73Xs,0","Nunito":"YAFdJoNRMmU,1","Oleo Script":"YACgEQQ14jI,0","Oswald":"YACgEQY10lw,0","Pacifico":"YADLjORQ1u4,0","Phantom Sans":"YAFdJvgJ5TU,0","Playfair Display":"YAFdJhem5V8,1","Plus Jakarta Sans":"YAGvf3_u0_Q,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Quicksand":"YAFdJpYtCxE,1","Raleway":"YAFdJhmxbVQ,1","Roboto Slab":"YAFdJswIKAg,0","Rockwell":"YAFcfyVZnN0,0","Rye":"YACgEdQP21k,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Source Serif 4":"YACgEfdj394,0","Space Grotesk":"YADZ-dYEmhg,0","Space Mono":"YADW1-vpsoc,0","Times New Roman":"YAGzXW3gftg,0","Times":"YAGzXW3gftg,0","Trebuchet MS":"YAFcfrglpVA,0","UV Display":"YAEdVfSSpYo,0","UV Sans":"YAFdJvgJ5TU,0","Ubuntu":"YACgERDU--Q,0","Verdana":"YAGzXTctYtQ,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0","ui-monospace":"YAD1aFjegN8,0","ui-sans-serif":"YACkoD1yZN0,0"}}');</script><script src="/_sdk/83d6dfdadcd4750a.telemetry_sdk.js" integrity="sha512-XS4Dvzp6vbagZS9vFErihvr8aO3S0tH78KWUefn06fmL4WYqryBtZj/IOLITYj7dFA4gPVvPg1W/JB1DK3uLNQ=="></script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Learning Ledger</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --ink: #07110f;
-      --panel: #10211d;
-      --panel-deep: #0b1815;
-      --line: rgba(192, 242, 217, .13);
-      --text: #eefbf5;
-      --muted: #94aea4;
-      --mint: #6ef2b6;
-      --emerald: #19c77c;
-      --aqua: #55dfc1;
-      --field: rgba(2, 12, 9, .47);
-      --shadow: 0 24px 70px rgba(0, 0, 0, .24);
-    }
+<html lang="en" class="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Learning Ledger Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
+            },
+            colors: {
+              brand: {
+                light: '#a7f3d0',
+                DEFAULT: '#10b981',
+                dark: '#047857',
+              }
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.4s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      .heatmap-grid { display: grid; grid-template-rows: repeat(7, 13px); grid-auto-columns: 13px; grid-auto-flow: column; gap: 4px; }
+      .day-cell { width: 13px; height: 13px; border-radius: 3px; cursor: default; transition: all 0.2s ease; }
+      .day-cell[data-count]:not([data-count="0"]) { cursor: pointer; }
+      .day-cell:hover { transform: scale(1.4); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+      
+      .day-cell.l0 { background-color: #f1f5f9; } 
+      .day-cell.l1 { background-color: #a7f3d0; } 
+      .day-cell.l2 { background-color: #34d399; } 
+      .day-cell.l3 { background-color: #10b981; } 
+      .day-cell.l4 { background-color: #047857; } 
+      
+      .dark .day-cell.l0 { background-color: #1f2937; } 
+      .dark .day-cell.l1 { background-color: #064e3b; } 
+      .dark .day-cell.l2 { background-color: #047857; } 
+      .dark .day-cell.l3 { background-color: #10b981; } 
+      .dark .day-cell.l4 { background-color: #6ee7b7; } 
+      
+      .custom-scrollbar { overflow-x: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+      .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b5563; }
+      
+      #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .15s; z-index: 9999; white-space: nowrap; transform: translate(-50%, -100%); }
+      
+      .loader { border: 2.5px solid #e2e8f0; border-top: 2.5px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
+      .dark .loader { border-color: #374151; border-top-color: #10b981; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      
+      .toast { transform: translateY(24px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
+      .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+  </head>
+  <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300 font-sans overflow-x-hidden w-full relative">
+    
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-[400px] bg-brand/10 dark:bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-    body.light-mode {
-      --ink: #e8f4ef;
-      --panel: #f8fffb;
-      --panel-deep: #eef9f4;
-      --line: rgba(16, 91, 65, .14);
-      --text: #0c2620;
-      --muted: #607c70;
-      --mint: #087a50;
-      --emerald: #06945d;
-      --aqua: #087a6d;
-      --field: #f2fbf6;
-      --shadow: 0 20px 55px rgba(25, 71, 54, .11);
-    }
+    <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8 relative w-full">
 
-    * { box-sizing: border-box; }
-
-    body {
-      width: 100%;
-      margin: 0;
-      background: var(--ink);
-      color: var(--text);
-      font-family: "DM Sans", sans-serif;
-      transition: background .35s ease, color .35s ease;
-    }
-
-    .app-shell {
-      width: 100%;
-      min-height: calc(100 * min(var(--vh, 1vh), 1vh));
-      position: relative;
-      overflow: hidden;
-      background:
-        radial-gradient(circle at 12% -8%, rgba(25, 199, 124, .20), transparent 32rem),
-        radial-gradient(circle at 93% 28%, rgba(85, 223, 193, .10), transparent 30rem),
-        var(--ink);
-    }
-
-    .app-shell::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: .33;
-      background-image:
-        linear-gradient(rgba(164, 255, 212, .045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(164, 255, 212, .045) 1px, transparent 1px);
-      background-size: 36px 36px;
-      mask-image: linear-gradient(to bottom, black, transparent 76%);
-    }
-
-    .page-content {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 1480px;
-      margin: 0 auto;
-      padding: 28px;
-    }
-
-    .brand-font { font-family: "Space Grotesk", sans-serif; }
-    .mono-font { font-family: "Space Mono", monospace; }
-
-    .surface {
-      background: color-mix(in srgb, var(--panel) 88%, transparent);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-
-    .panel {
-      border-radius: 24px;
-    }
-
-    .dashboard-card {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .dashboard-card::after {
-      content: "";
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      top: -38px;
-      right: -32px;
-      border-radius: 50%;
-      background: rgba(110, 242, 182, .10);
-      filter: blur(2px);
-    }
-
-    .brand-mark {
-      box-shadow: 0 0 0 6px rgba(110, 242, 182, .07), 0 0 32px rgba(25, 199, 124, .32);
-    }
-
-    .logo-mark {
-      animation: logoFloat 4s ease-in-out infinite;
-      transition: transform .25s ease, box-shadow .25s ease;
-    }
-
-    .logo-mark:hover {
-      transform: rotate(-4deg) scale(1.06);
-      box-shadow: 0 0 0 8px rgba(110, 242, 182, .10), 0 0 40px rgba(25, 199, 124, .42);
-    }
-
-    .logo-svg { width: 29px; height: 29px; }
-
-    .dashboard-card {
-      transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-    }
-
-    .dashboard-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(110, 242, 182, .30);
-      box-shadow: 0 28px 80px rgba(0, 0, 0, .30);
-    }
-
-    .subject-chip { transition: transform .2s ease, background .2s ease, border-color .2s ease; }
-    .subject-chip:hover { transform: translateY(-2px); background: rgba(25, 199, 124, .19); border-color: rgba(110, 242, 182, .42); }
-    button { transition: transform .2s ease, filter .2s ease, border-color .2s ease; }
-    button:not(:disabled):hover { transform: translateY(-1px); }
-
-    .status-pulse { animation: glowPulse 1.8s ease-in-out infinite; }
-    .reveal { animation: reveal .55s both; }
-    .delay-1 { animation-delay: .08s; }
-    .delay-2 { animation-delay: .16s; }
-    .delay-3 { animation-delay: .24s; }
-
-    @keyframes logoFloat {
-      0%, 100% { transform: translateY(0) rotate(0); }
-      50% { transform: translateY(-3px) rotate(2deg); }
-    }
-
-    @keyframes glowPulse {
-      0%, 100% { opacity: .5; transform: scale(.82); box-shadow: 0 0 0 0 rgba(110, 242, 182, .42); }
-      50% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 7px rgba(110, 242, 182, 0); }
-    }
-
-    @keyframes reveal {
-      from { opacity: 0; transform: translateY(14px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .field {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      background: var(--field);
-      color: var(--text);
-      padding: 11px 13px;
-      outline: none;
-      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-    }
-
-    .field:focus {
-      border-color: var(--emerald);
-      box-shadow: 0 0 0 4px rgba(25, 199, 124, .13);
-    }
-
-    .field::placeholder { color: var(--muted); opacity: .78; }
-    .field option { background: var(--panel-deep); color: var(--text); }
-
-    .subject-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      border: 1px solid rgba(110, 242, 182, .23);
-      border-radius: 999px;
-      padding: 7px 9px 7px 11px;
-      color: var(--mint);
-      background: rgba(25, 199, 124, .12);
-      font-size: .78rem;
-      font-weight: 700;
-    }
-
-    .subject-chip button {
-      display: grid;
-      place-items: center;
-      padding: 0;
-      border: 0;
-      color: currentColor;
-      background: transparent;
-      cursor: pointer;
-      opacity: .68;
-      transition: opacity .18s ease;
-    }
-
-    .subject-chip button:hover { opacity: 1; }
-
-    .heatmap-grid {
-      display: grid;
-      grid-template-columns: repeat(53, minmax(7px, 1fr));
-      grid-template-rows: repeat(7, 10px);
-      grid-auto-flow: column;
-      gap: 4px;
-      min-width: 645px;
-    }
-
-    .heat-cell {
-      border-radius: 3px;
-      background: rgba(158, 192, 179, .12);
-      transition: transform .16s ease, filter .16s ease;
-    }
-
-    .heat-cell:hover {
-      z-index: 2;
-      transform: scale(1.52);
-      filter: brightness(1.25);
-    }
-
-    .heat-1 { background: rgba(25, 199, 124, .27); }
-    .heat-2 { background: rgba(25, 199, 124, .48); }
-    .heat-3 { background: rgba(25, 199, 124, .72); }
-    .heat-4 { background: #72f4bd; box-shadow: 0 0 9px rgba(110, 242, 182, .46); }
-
-    .timeline-item {
-      position: relative;
-      padding-left: 28px;
-    }
-
-    .timeline-item::before {
-      content: "";
-      position: absolute;
-      top: 22px;
-      bottom: -17px;
-      left: 5px;
-      width: 1px;
-      background: var(--line);
-    }
-
-    .timeline-item:last-child::before { display: none; }
-
-    .timeline-dot {
-      position: absolute;
-      z-index: 1;
-      top: 17px;
-      left: 0;
-      width: 11px;
-      height: 11px;
-      border: 2px solid var(--panel);
-      border-radius: 50%;
-      background: var(--mint);
-      box-shadow: 0 0 15px rgba(110, 242, 182, .75);
-    }
-
-    .hidden-view { display: none !important; }
-
-    button:focus-visible,
-    input:focus-visible,
-    textarea:focus-visible,
-    select:focus-visible {
-      outline: 2px solid var(--mint);
-      outline-offset: 3px;
-    }
-
-    @media (max-width: 720px) {
-      .page-content { padding: 16px; }
-      .heatmap-grid { min-width: 588px; grid-template-rows: repeat(7, 9px); gap: 3px; }
-    }
-  </style>
-  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
-  <script src="/_sdk/8de366929c5f3b48.data_sdk.js" type="text/javascript" integrity="sha512-TyQ8k8cZj66xe/aENmn6RyZpdOFZXbAo5+KBG3PeFM+Q4qMTHU8xAqmq4ADClNfPrstgQYV6OzZHwLTnElzB2g=="></script>
-  <script src="/_sdk/c90249f316bbe621.editing_sdk.js" type="text/javascript" integrity="sha512-cd4ICwG+3hl1AqLrCysr9GopLZ+2Cyjo2KMofj11Ys31LqLmkNEJhOQqYCwg6Nakgg+jlZ2JIdhM6PxWUR0zsg=="></script>
-  <script src="/_sdk/765e1fea0cec97ce.resizing_sdk.js" type="text/javascript" integrity="sha512-IRTJnqww0+HQ5V/LlWEQrlD5SrYHaVvaeVoNe8HYQXoaguzUGheSd9+n9s6WOgaTcEH0g37DuINHZ9aqfzWjlw=="></script>
- </head>
- <body data-template-id="__page-root">
-  <div class="app-shell">
-   <div class="page-content">
-    <header class="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-center sm:justify-between" style="border-color:var(--line)">
-     <div class="flex items-center gap-4">
-      <div class="brand-mark logo-mark flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-400 text-emerald-950" aria-hidden="true">
-       <svg class="logo-svg" viewbox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 10.5C13.8 9.2 18.6 10.1 24 14v24c-5.4-3.9-10.2-4.8-15-3.5v-24Z" fill="currentColor" opacity=".95" /> <path d="M39 10.5C34.2 9.2 29.4 10.1 24 14v24c5.4-3.9 10.2-4.8 15-3.5v-24Z" fill="currentColor" opacity=".7" /> <path d="m17 24 4.2 4.2L32 17.5" stroke="#07110f" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M24 14v24" stroke="#07110f" stroke-width="1.8" stroke-linecap="round" opacity=".65" />
-       </svg>
-      </div>
-      <div>
-       <h1 data-template-id="app-title" class="canva-text brand-font font-bold tracking-tight"></h1>
-       <div class="mt-1.5 flex items-center gap-2">
-        <span class="status-pulse h-2 w-2 rounded-full bg-emerald-300"></span> <span data-template-id="sync-status" class="canva-text text-xs font-medium"></span>
-       </div>
-      </div>
-     </div><button id="theme-toggle" type="button" class="inline-flex items-center justify-center gap-2 self-start rounded-xl border px-3.5 py-2.5 text-sm font-bold transition hover:border-emerald-400 sm:self-auto" style="border-color:var(--line); background:var(--panel); color:var(--text)" aria-label="Switch dashboard theme"> <i data-lucide="sun-moon" class="h-4 w-4"></i> <span id="light-mode-label" data-template-id="light-mode-label" class="canva-text"></span> <span id="dark-mode-label" data-template-id="dark-mode-label" class="canva-text hidden-view"></span> </button>
-    </header>
-    <main class="pt-7">
-     <section aria-label="Study statistics" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <article class="dashboard-card surface panel reveal p-4">
-       <div class="flex items-start justify-between">
-        <span data-template-id="stat-streak-label" class="canva-text text-xs font-bold uppercase tracking-wider"></span> <i data-lucide="flame" class="h-5 w-5 text-orange-400"></i>
-       </div>
-       <p id="stat-streak" class="brand-font mt-5 text-3xl font-bold">0</p>
-       <p data-template-id="stat-streak-detail" class="canva-text mt-1 text-xs"></p>
-      </article>
-      <article class="dashboard-card surface panel reveal delay-1 p-4">
-       <div class="flex items-start justify-between">
-        <span data-template-id="stat-week-label" class="canva-text text-xs font-bold uppercase tracking-wider"></span> <i data-lucide="timer-reset" class="h-5 w-5 text-emerald-300"></i>
-       </div>
-       <p id="stat-week" class="brand-font mt-5 text-3xl font-bold">0m</p>
-       <p data-template-id="stat-week-detail" class="canva-text mt-1 text-xs"></p>
-      </article>
-      <article class="dashboard-card surface panel reveal delay-2 p-4">
-       <div class="flex items-start justify-between">
-        <span data-template-id="stat-total-label" class="canva-text text-xs font-bold uppercase tracking-wider"></span> <i data-lucide="chart-no-axes-combined" class="h-5 w-5 text-cyan-300"></i>
-       </div>
-       <p id="stat-total" class="brand-font mt-5 text-3xl font-bold">0h</p>
-       <p data-template-id="stat-total-detail" class="canva-text mt-1 text-xs"></p>
-      </article>
-      <article class="dashboard-card surface panel reveal delay-3 p-4">
-       <div class="flex items-start justify-between">
-        <span data-template-id="stat-active-label" class="canva-text text-xs font-bold uppercase tracking-wider"></span> <i data-lucide="calendar-days" class="h-5 w-5 text-violet-300"></i>
-       </div>
-       <p id="stat-active" class="brand-font mt-5 text-3xl font-bold">0</p>
-       <p data-template-id="stat-active-detail" class="canva-text mt-1 text-xs"></p>
-      </article>
-     </section>
-     <div class="mt-5 grid gap-5 xl:grid-cols-[.82fr_1.38fr]">
-      <aside class="space-y-5">
-       <section data-template-id="subjects-panel" class="canva-panel surface panel p-5">
-        <div class="mb-5 flex items-center justify-between">
-         <div>
-          <p data-template-id="subjects-kicker" class="canva-text mono-font text-[10px] font-bold uppercase tracking-[.19em]"></p>
-          <h2 data-template-id="subjects-title" class="canva-text brand-font mt-1 font-bold"></h2>
-          <p data-template-id="subjects-helper" class="canva-text mt-1 text-sm"></p>
-         </div><i data-lucide="tags" class="h-5 w-5 text-emerald-300"></i>
-        </div>
-        <form id="subject-form" class="flex gap-2">
-         <label for="subject-name" class="sr-only">New subject</label> <input id="subject-name" class="field min-w-0 text-sm" type="text" maxlength="40" placeholder="e.g. Product design"> <button data-template-id="add-subject-button" class="canva-button rounded-xl px-4 text-sm font-bold transition hover:brightness-110 disabled:opacity-60" type="submit"></button>
-        </form>
-        <div id="subject-tags" class="mt-4 flex flex-wrap gap-2" aria-live="polite"></div>
-       </section>
-       <section data-template-id="session-panel" class="canva-panel surface panel p-5">
-        <div class="mb-5 flex items-center gap-3">
-         <div class="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/15 text-emerald-300">
-          <i data-lucide="pen-line" class="h-4 w-4"></i>
-         </div>
-         <div>
-          <h2 data-template-id="session-title" class="canva-text brand-font font-bold"></h2>
-          <p data-template-id="session-helper" class="canva-text text-sm"></p>
-         </div>
-        </div>
-        <form id="session-form" class="space-y-4">
-         <div class="grid grid-cols-2 gap-3">
-          <div>
-           <label data-template-id="date-label" class="canva-text mb-1.5 block text-xs font-bold" for="session-date"></label> <input id="session-date" class="field text-sm" type="date" required>
+      <header class="flex justify-between items-center backdrop-blur-sm bg-white/50 dark:bg-gray-900/50 p-4 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm w-full">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-display bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-2">
+            <i class="ph-fill ph-book-open text-brand"></i> Learning Ledger
+          </h1>
+          <div id="status-indicator" class="flex items-center gap-2 text-xs mt-1 text-slate-500 dark:text-gray-400 font-medium">
+            <div class="loader" id="loading-spinner"></div>
+            <span id="status-text">Syncing database…</span>
           </div>
-          <div>
-           <label data-template-id="subject-label" class="canva-text mb-1.5 block text-xs font-bold" for="session-subject"></label> <select id="session-subject" class="field text-sm" required></select>
-          </div>
-         </div>
-         <div>
-          <label data-template-id="topic-label" class="canva-text mb-1.5 block text-xs font-bold" for="session-topic"></label> <input id="session-topic" class="field text-sm" type="text" maxlength="100" required>
-         </div>
-         <div>
-          <label data-template-id="minutes-label" class="canva-text mb-1.5 block text-xs font-bold" for="session-minutes"></label> <input id="session-minutes" class="field text-sm" type="number" min="1" max="1440" required>
-         </div>
-         <div>
-          <label data-template-id="notes-label" class="canva-text mb-1.5 block text-xs font-bold" for="session-notes"></label> <textarea id="session-notes" class="field resize-none text-sm" rows="3" maxlength="300"></textarea>
-         </div><button id="save-session" type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 text-sm font-bold text-emerald-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"> <i data-lucide="save" class="h-4 w-4"></i> <span id="save-session-idle" data-template-id="save-session-idle" class="canva-text"></span> <span id="save-session-loading" data-template-id="save-session-loading" class="canva-text hidden-view"></span> </button>
-         <p id="form-message" class="hidden-view text-center text-sm font-semibold" aria-live="polite"></p>
-        </form>
-       </section>
-      </aside>
-      <section class="space-y-5">
-       <section data-template-id="matrix-panel" class="canva-panel surface panel overflow-hidden p-5">
-        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-         <div>
-          <div class="flex items-center gap-2">
-           <span class="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_12px_#6ef2b6]"></span>
-           <h2 data-template-id="matrix-title" class="canva-text brand-font font-bold"></h2>
-          </div>
-          <p data-template-id="matrix-helper" class="canva-text mt-1 text-sm"></p>
-         </div>
-         <div>
-          <label for="heatmap-filter" class="sr-only">Filter activity by subject</label> <select id="heatmap-filter" class="field min-w-[175px] py-2 text-sm"></select>
-         </div>
         </div>
-        <div class="overflow-x-auto pb-2">
-         <div class="flex min-w-[710px] gap-3">
-          <div class="grid h-[94px] grid-rows-7 gap-1 pt-[1px] text-[10px]" style="color:var(--muted)">
-           <span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span>
+        <button id="theme-toggle" class="shrink-0 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md dark:hover:bg-gray-700 transition-all duration-200 text-slate-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/50">
+          <i id="moon-icon" class="ph-fill ph-moon text-lg hidden"></i>
+          <i id="sun-icon" class="ph-fill ph-sun text-lg text-amber-500"></i>
+        </button>
+      </header>
+
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Day streak</div>
+            <i class="ph-fill ph-fire text-orange-500 text-lg"></i>
           </div>
-          <div class="flex-1">
-           <div id="heatmap-months" class="mb-2 flex justify-between text-[10px]" style="color:var(--muted)"></div>
-           <div id="heatmap-grid" class="heatmap-grid" aria-label="Annual study activity heatmap"></div>
+          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-streak">0</div>
+        </div>
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 100ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Past 7 Days</div>
+            <i class="ph-fill ph-trend-up text-blue-500 text-lg"></i>
           </div>
-         </div>
+          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-week">0</div>
         </div>
-        <div class="mt-5 flex items-center justify-end gap-2 text-[11px]" style="color:var(--muted)">
-         <span data-template-id="less-label" class="canva-text"></span> <span class="h-3 w-3 rounded-sm bg-slate-500/15"></span> <span class="h-3 w-3 rounded-sm heat-1"></span> <span class="h-3 w-3 rounded-sm heat-2"></span> <span class="h-3 w-3 rounded-sm heat-3"></span> <span class="h-3 w-3 rounded-sm heat-4"></span> <span data-template-id="more-label" class="canva-text"></span>
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Total Logged</div>
+            <i class="ph-fill ph-books text-brand text-lg"></i>
+          </div>
+          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-total">0</div>
         </div>
-       </section>
-       <section data-template-id="timeline-panel" class="canva-panel surface panel p-5">
-        <div class="mb-5 flex items-center justify-between">
-         <div>
-          <p data-template-id="timeline-kicker" class="canva-text mono-font text-[10px] font-bold uppercase tracking-[.19em]"></p>
-          <h2 data-template-id="timeline-title" class="canva-text brand-font mt-1 font-bold"></h2>
-          <p data-template-id="timeline-helper" class="canva-text mt-1 text-sm"></p>
-         </div><i data-lucide="history" class="h-5 w-5 text-emerald-300"></i>
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 300ms; opacity: 0;">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400">Active Days</div>
+            <i class="ph-fill ph-calendar-check text-purple-500 text-lg"></i>
+          </div>
+          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-days">0</div>
         </div>
-        <div id="timeline-list" class="space-y-3" aria-live="polite">
-         <div id="empty-timeline" class="rounded-2xl border border-dashed px-4 py-10 text-center text-sm" style="border-color:var(--line); color:var(--muted)">
-          <i data-lucide="calendar-plus" class="mx-auto mb-3 h-6 w-6 text-emerald-300"></i> <span data-template-id="empty-timeline-text" class="canva-text"></span>
-         </div>
-        </div><button id="load-more" type="button" class="hidden-view mt-5 w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-bold transition hover:border-emerald-400" style="border-color:var(--line); color:var(--text)"> <span id="load-more-label" data-template-id="load-more-label" class="canva-text"></span> <span id="load-more-count"></span> <i data-lucide="chevron-down" class="h-4 w-4"></i> </button>
-       </section>
       </section>
-     </div>
-    </main>
-   </div>
-  </div>
-  <template id="timeline-template">
-   <article class="timeline-item">
-    <span class="timeline-dot"></span>
-    <div class="rounded-2xl border p-4 transition hover:-translate-y-0.5" style="border-color:var(--line); background:var(--field)">
-     <div class="flex flex-wrap items-start justify-between gap-3">
-      <div>
-       <span class="session-subject inline-flex rounded-full px-2.5 py-1 text-xs font-bold"></span>
-       <h3 class="session-topic brand-font mt-2 font-bold"></h3>
-      </div><span class="session-date text-xs font-semibold" style="color:var(--muted)"></span>
-     </div>
-     <div class="mt-3 flex items-center gap-2 text-xs" style="color:var(--muted)">
-      <i data-lucide="clock-3" class="h-3.5 w-3.5 text-emerald-300"></i> <span class="session-duration"></span>
-     </div>
-     <p class="session-notes mt-2 text-sm leading-relaxed" style="color:var(--muted)"></p>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 w-full">
+        
+        <div class="lg:col-span-4 space-y-6 w-full min-w-0">
+          
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden transition-all hover:shadow-md">
+            <h2 class="text-lg font-bold font-display mb-4 flex items-center gap-2">
+              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="ph-bold ph-folder-plus text-lg"></i>
+              </div>
+              Add Subjects
+            </h2>
+            <form id="subject-form" class="flex flex-row items-center gap-2 w-full">
+              <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 min-w-0 w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
+              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-slate-800 dark:bg-brand dark:hover:bg-brand-dark dark:text-white flex items-center gap-2">
+                Add
+              </button>
+            </form>
+            <div id="subject-list" class="mt-5 flex flex-wrap gap-2 text-xs"></div>
+          </section>
+
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full transition-all hover:shadow-md">
+            <h2 class="text-lg font-bold font-display mb-5 flex items-center gap-2">
+              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="ph-bold ph-pencil-simple-line text-lg"></i>
+              </div>
+              Log Session
+            </h2>
+            <form id="log-form" class="space-y-4">
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-calendar"></i> Date</label>
+                <input type="date" id="log-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-bookmarks"></i> Subject</label>
+                <select id="log-subject" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white cursor-pointer">
+                  <option value="" disabled selected>Select a subject...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-text-t"></i> Topic covered</label>
+                <input type="text" id="log-topic" placeholder="e.g. Array Methods" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-clock"></i> Minutes</label>
+                <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1"><i class="ph ph-article"></i> Notes (Optional)</label>
+                <textarea id="log-notes" rows="2" placeholder="Key takeaways..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400 resize-none custom-scrollbar"></textarea>
+              </div>
+              <button type="submit" id="submit-btn" class="w-full mt-2 font-semibold py-3.5 rounded-xl transition-all shadow-md bg-slate-900 text-white hover:bg-slate-800 hover:shadow-lg dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 flex items-center justify-center gap-2">
+                <i class="ph-bold ph-check-circle"></i> Save Session
+              </button>
+            </form>
+          </section>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6 w-full min-w-0">
+          
+          <section class="p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <h2 class="text-xl sm:text-2xl font-bold font-display flex items-center gap-2">
+                <i class="ph-fill ph-squares-four text-brand"></i> Activity Matrix
+              </h2>
+              <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-950 p-1.5 rounded-xl border border-slate-200 dark:border-gray-800 shrink-0 focus-within:ring-2 focus-within:ring-brand/20 transition-all">
+                <i class="ph-bold ph-funnel text-slate-400 pl-2"></i>
+                <select id="filter-subject" class="text-xs sm:text-sm font-semibold px-1 sm:px-2 py-1.5 rounded-lg bg-white dark:bg-gray-800 border-none shadow-sm outline-none w-32 sm:w-48 text-slate-700 dark:text-gray-200 cursor-pointer">
+                  <option value="ALL">All Subjects</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-10 relative w-full overflow-hidden">
+              <h3 class="text-sm font-bold mb-4 flex items-center gap-2 text-slate-700 dark:text-gray-300">
+                Contribution Graph 
+                <span id="heatmap-title-sub" class="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md bg-brand/10 text-brand font-bold">All</span>
+              </h3>
+              
+              <div class="custom-scrollbar pb-3 relative w-full" id="heatmap-scroll-area">
+                <div class="flex gap-2 sm:gap-3">
+                  <div class="flex flex-col justify-between text-[10px] sm:text-[11px] font-medium py-1 text-slate-400 dark:text-gray-500 shrink-0" style="height: 119px;">
+                    <span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span>
+                  </div>
+                  <div id="heatmap" class="heatmap-grid pb-1"></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                <i class="ph-bold ph-clock-counter-clockwise"></i> Recent Timeline
+              </h3>
+              <div id="logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-2">
+                <p class="text-sm italic text-slate-400 dark:text-gray-500">Loading timeline…</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </div>
-   </article>
-  </template>
-  <script>
-    const state = {
-      records: [],
-      subjects: ["React", "Python", "Algorithms"],
-      visibleCount: 5,
-      filter: "all"
-    };
 
-    const $ = (id) => document.getElementById(id);
-    const today = new Date().toISOString().slice(0, 10);
-    $("session-date").value = today;
+    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl border border-slate-700 dark:border-gray-200"></div>
 
-    function escapeHtml(value) {
-      return String(value || "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
-      }[char]));
-    }
+    <div id="toast" class="toast fixed bottom-6 right-6 left-6 sm:left-auto text-white font-medium px-6 py-4 rounded-2xl shadow-2xl z-50 text-sm flex items-center gap-3 bg-slate-900 dark:bg-white dark:text-gray-900">
+      <div class="w-6 h-6 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center">
+        <i class="ph-bold ph-check text-green-500"></i>
+      </div>
+      <span id="toast-msg">Saved successfully</span>
+    </div>
 
-    function formatDate(value) {
-      return new Date(value + "T12:00:00").toLocaleDateString("en", {
-        month: "short", day: "numeric", year: "numeric"
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+      import {
+        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy,
+      } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyB3ZLk2sK28LY0OP727Kpxu0xsCrfZksYs",
+        authDomain: "learning-tracker-9a1e1.firebaseapp.com",
+        projectId: "learning-tracker-9a1e1",
+        storageBucket: "learning-tracker-9a1e1.firebasestorage.app",
+        messagingSenderId: "933272881617",
+        appId: "1:933272881617:web:f9541d767ce37c77e9b8f0",
+        measurementId: "G-MJTQYNYE5H",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const logsCol = collection(db, "logs");
+      const subsCol = collection(db, "subjects");
+
+      const statusText = document.getElementById("status-text");
+      const spinner = document.getElementById("loading-spinner");
+      const dateInput = document.getElementById("log-date");
+      const logSubjectSelect = document.getElementById("log-subject");
+      const filterSubjectSelect = document.getElementById("filter-subject");
+      const logsContainer = document.getElementById("logs-container");
+      
+      dateInput.valueAsDate = new Date();
+
+      let allLogs = [];
+      let allSubjects = [];
+      let tooltipTimeout;
+
+      const themeToggle = document.getElementById('theme-toggle');
+      const moonIcon = document.getElementById('moon-icon');
+      const sunIcon = document.getElementById('sun-icon');
+      const htmlEl = document.documentElement;
+      
+      function updateThemeIcon() {
+        if (htmlEl.classList.contains('dark')) {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        } else {
+          moonIcon.classList.add('hidden');
+          sunIcon.classList.remove('hidden');
+        }
+      }
+
+      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        htmlEl.classList.add('dark');
+      }
+      updateThemeIcon();
+
+      themeToggle.addEventListener('click', () => {
+        htmlEl.classList.toggle('dark');
+        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+        updateThemeIcon();
       });
-    }
 
-    function formatHours(minutes) {
-      if (minutes < 60) return `${minutes}m`;
-      const hours = minutes / 60;
-      return `${hours % 1 === 0 ? hours : hours.toFixed(1)}h`;
-    }
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        document.getElementById("toast-msg").textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2500);
+      }
+      
+      // FIXED: Uses local timezone representation instead of UTC shift
+      function dayKey(d) { 
+        const dt = new Date(d);
+        return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      }
 
-    function showMessage(message, type) {
-      const messageEl = $("form-message");
-      messageEl.textContent = message;
-      messageEl.style.color = type === "error" ? "#fb7185" : "#6ef2b6";
-      messageEl.classList.remove("hidden-view");
-      clearTimeout(showMessage.timer);
-      showMessage.timer = setTimeout(() => messageEl.classList.add("hidden-view"), 4200);
-    }
+      async function loadSubjects() {
+        const snap = await getDocs(query(subsCol, orderBy("name", "asc")));
+        allSubjects = [];
+        snap.forEach(d => allSubjects.push({ id: d.id, ...d.data() }));
+        renderSubjectUI();
+      }
 
-    function updateSubjectsFromRecords() {
-      state.records.forEach((record) => {
-        if (record.subject && !state.subjects.some((subject) => subject.toLowerCase() === record.subject.toLowerCase())) {
-          state.subjects.push(record.subject);
+      function renderSubjectUI() {
+        const list = document.getElementById("subject-list");
+        list.innerHTML = allSubjects.map(s => 
+          `<span class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm flex items-center gap-1.5"><i class="ph ph-hash text-slate-400"></i>${s.name}</span>`
+        ).join('');
+
+        const logOpts = `<option value="" disabled selected>Select a subject...</option>` + 
+                        allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        logSubjectSelect.innerHTML = logOpts;
+
+        const currentFilter = filterSubjectSelect.value;
+        const filterOpts = `<option value="ALL">All Subjects</option>` + 
+                           allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        filterSubjectSelect.innerHTML = filterOpts;
+        filterSubjectSelect.value = currentFilter || "ALL";
+      }
+
+      async function loadLogs() {
+        try {
+          const q = query(logsCol, orderBy("timestamp", "desc"));
+          const snap = await getDocs(q);
+          allLogs = [];
+          snap.forEach((d) => allLogs.push({ id: d.id, ...d.data() }));
+
+          applyFilter();
+          spinner.style.display = "none";
+          statusText.textContent = "Synced";
+        } catch (err) {
+          console.error(err);
+          statusText.textContent = "Connection error";
+        }
+      }
+
+      function applyFilter() {
+        const filterVal = filterSubjectSelect.value;
+        document.getElementById("heatmap-title-sub").textContent = filterVal === "ALL" ? "All Subjects" : filterVal;
+        
+        const filteredLogs = filterVal === "ALL" ? allLogs : allLogs.filter(l => l.subject === filterVal);
+        
+        const counts = computeStats(filteredLogs);
+        renderHeatmap(counts);
+        renderLogs(filteredLogs);
+      }
+
+      function computeStats(logs) {
+        const counts = {};
+        logs.forEach((l) => { const k = dayKey(l.timestamp); counts[k] = (counts[k] || 0) + 1; });
+        
+        let streak = 0;
+        let cursor = new Date();
+        cursor.setHours(12, 0, 0, 0); // FIXED: Prevent streak breaking via timezone shift
+        if (!counts[dayKey(cursor)]) cursor.setDate(cursor.getDate() - 1);
+        while (counts[dayKey(cursor)]) {
+          streak++;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekCount = logs.filter((l) => new Date(l.timestamp) >= weekAgo).length;
+
+        document.getElementById("stat-streak").textContent = streak;
+        document.getElementById("stat-week").textContent = weekCount;
+        document.getElementById("stat-total").textContent = logs.length;
+        document.getElementById("stat-days").textContent = Object.keys(counts).length;
+        return counts;
+      }
+
+      function renderHeatmap(counts) {
+        const grid = document.getElementById("heatmap");
+        grid.innerHTML = "";
+        const tooltip = document.getElementById("tooltip");
+        const scrollArea = document.getElementById("heatmap-scroll-area");
+        
+        const today = new Date();
+        today.setHours(12, 0, 0, 0); // FIXED: Set to noon to avoid boundary shifting
+        
+        const start = new Date(today);
+        start.setDate(start.getDate() - 364);
+        
+        let offset = start.getDay() - 1;
+        if (offset === -1) offset = 6; 
+        
+        for (let i = 0; i < offset; i++) {
+          const spacer = document.createElement("div");
+          spacer.style.width = "13px"; spacer.style.height = "13px";
+          grid.appendChild(spacer);
+        }
+
+        for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+          const key = dayKey(d);
+          const count = counts[key] || 0;
+          const cell = document.createElement("div");
+          cell.className = `day-cell l${Math.min(count, 4)}`; 
+          cell.dataset.count = count;
+          
+          const cellDate = new Date(d); 
+
+          const triggerTooltip = (e) => {
+            clearTimeout(tooltipTimeout);
+            
+            const rect = e.target.getBoundingClientRect();
+            
+            tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'})}`;
+            tooltip.style.left = (rect.left + window.scrollX + (rect.width / 2)) + "px";
+            tooltip.style.top = (rect.top + window.scrollY - 6) + "px";
+            tooltip.style.opacity = "1";
+          };
+
+          const hideTooltip = () => { tooltip.style.opacity = "0"; };
+
+          cell.addEventListener("mouseenter", triggerTooltip);
+          cell.addEventListener("mouseleave", hideTooltip);
+          
+          cell.addEventListener("click", (e) => {
+            triggerTooltip(e);
+            tooltipTimeout = setTimeout(hideTooltip, 2000); 
+          });
+
+          grid.appendChild(cell);
+        }
+        
+        requestAnimationFrame(() => { scrollArea.scrollLeft = scrollArea.scrollWidth; });
+      }
+
+      function renderLogs(logs) {
+        if (logs.length === 0) {
+          logsContainer.innerHTML = `<div class="p-8 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium bg-white/50 dark:bg-gray-900/50"><i class="ph ph-ghost text-4xl mb-2 text-slate-300 dark:text-gray-600"></i> No sessions found. Time to log one!</div>`;
+          return;
+        }
+
+        logsContainer.innerHTML = logs.map((log, index) => {
+          const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+          const delay = Math.min(index * 50, 500); 
+          
+          return `
+            <div class="group relative p-4 pl-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-all shadow-sm hover:shadow-md animate-fade-in overflow-hidden" style="animation-delay: ${delay}ms; opacity: 0; animation-fill-mode: forwards;">
+              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand rounded-l-2xl"></div>
+              <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 px-2 py-0.5 rounded-md flex items-center gap-1"><i class="ph-bold ph-bookmark-simple"></i>${log.subject}</span>
+                    <span class="text-xs font-semibold text-slate-400 dark:text-gray-500 flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i>${dateStr}</span>
+                  </div>
+                  <h4 class="text-base font-bold text-slate-800 dark:text-white truncate whitespace-normal">${log.topic}</h4>
+                  ${log.minutes ? `<div class="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 font-semibold text-slate-600 dark:text-gray-400"><i class="ph-bold ph-hourglass-high text-brand"></i>${log.minutes} min</div>` : ""}
+                  ${log.notes ? `<p class="text-sm mt-3 leading-relaxed text-slate-600 dark:text-gray-400 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 break-words flex gap-2"><i class="ph-fill ph-quotes text-slate-300 dark:text-gray-700 text-lg shrink-0"></i>${log.notes}</p>` : ""}
+                </div>
+                <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-100 dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-900/40 shrink-0 flex items-center gap-1" data-id="${log.id}">
+                  <i class="ph-bold ph-trash"></i> Delete
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.querySelectorAll(".group button").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            if(!confirm("Delete this session?")) return;
+            const id = e.currentTarget.dataset.id;
+            try {
+              await deleteDoc(doc(db, "logs", id));
+              showToast("Session removed");
+              loadLogs();
+            } catch (err) {
+              console.error(err);
+              showToast("Error deleting session");
+            }
+          });
+        });
+      }
+
+      filterSubjectSelect.addEventListener("change", applyFilter);
+
+      document.getElementById("subject-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("new-subject");
+        const name = input.value.trim();
+        if(!name) return;
+        
+        try {
+          await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
+          input.value = "";
+          showToast("Subject added");
+          loadSubjects();
+        } catch (err) {
+          console.error(err);
+          showToast("Couldn't add subject");
         }
       });
-    }
 
-    function renderSubjects() {
-      const tags = $("subject-tags");
-      tags.innerHTML = "";
+      document.getElementById("log-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("submit-btn");
+        const subject = logSubjectSelect.value;
+        const topic = document.getElementById("log-topic").value.trim();
+        const notes = document.getElementById("log-notes").value.trim();
+        const minutes = document.getElementById("log-minutes").value;
+        
+        // FIXED: Explicitly construct the date in the local timezone (noon) 
+        // to prevent UTC conversion from shifting it to the previous day
+        const dateStr = dateInput.value;
+        const [y, m, d] = dateStr.split('-');
+        const dateVal = new Date(y, m - 1, d, 12, 0, 0); 
+        const timestamp = dateVal.toISOString();
 
-      state.subjects.forEach((subject) => {
-        const chip = document.createElement("span");
-        chip.className = "subject-chip";
-        chip.innerHTML = `<span>${escapeHtml(subject)}</span><button type="button" aria-label="Remove ${escapeHtml(subject)}"><i data-lucide="x" class="h-3.5 w-3.5"></i></button>`;
+        if(!subject) { alert("Please add and select a subject first."); return; }
 
-        chip.querySelector("button").addEventListener("click", () => {
-          if (state.subjects.length <= 1) {
-            showMessage("Keep at least one subject available.", "error");
-            return;
-          }
-          state.subjects = state.subjects.filter((item) => item !== subject);
-          renderSubjects();
-          renderSubjectSelects();
-        });
-
-        tags.appendChild(chip);
+        btn.disabled = true; 
+        btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saving…`;
+        try {
+          await addDoc(logsCol, {
+            subject, topic, notes: notes || null,
+            minutes: minutes ? Number(minutes) : null,
+            timestamp,
+          });
+          document.getElementById("log-topic").value = "";
+          document.getElementById("log-notes").value = "";
+          document.getElementById("log-minutes").value = "";
+          dateInput.valueAsDate = new Date();
+          showToast("Session logged successfully!");
+          loadLogs();
+        } catch (err) {
+          console.error(err);
+          showToast("Couldn't save session");
+        } finally {
+          btn.disabled = false; 
+          btn.innerHTML = `<i class="ph-bold ph-check-circle"></i> Save Session`;
+        }
       });
 
-      lucide.createIcons();
-    }
-
-    function renderSubjectSelects() {
-      const currentSessionSubject = $("session-subject").value;
-      const currentFilter = $("heatmap-filter").value || state.filter;
-
-      $("session-subject").innerHTML = state.subjects
-        .map((subject) => `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`)
-        .join("");
-
-      if (state.subjects.includes(currentSessionSubject)) {
-        $("session-subject").value = currentSessionSubject;
+      async function init() {
+        await loadSubjects();
+        await loadLogs();
       }
-
-      $("heatmap-filter").innerHTML =
-        `<option value="all">All subjects</option>` +
-        state.subjects.map((subject) => `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`).join("");
-
-      $("heatmap-filter").value = state.subjects.includes(currentFilter) ? currentFilter : "all";
-    }
-
-    function calculateStats() {
-      const totalMinutes = state.records.reduce((total, record) => total + (Number(record.minutes) || 0), 0);
-      const activeDates = new Set(state.records.map((record) => record.session_date));
-      const current = new Date(today + "T12:00:00");
-      let streak = 0;
-
-      while (activeDates.has(current.toISOString().slice(0, 10))) {
-        streak += 1;
-        current.setDate(current.getDate() - 1);
-      }
-
-      const weekStart = new Date(today + "T00:00:00");
-      weekStart.setDate(weekStart.getDate() - 6);
-
-      const weekMinutes = state.records
-        .filter((record) => new Date(record.session_date + "T00:00:00") >= weekStart)
-        .reduce((total, record) => total + Number(record.minutes || 0), 0);
-
-      $("stat-streak").textContent = String(streak);
-      $("stat-week").textContent = formatHours(weekMinutes);
-      $("stat-total").textContent = formatHours(totalMinutes);
-      $("stat-active").textContent = String(activeDates.size);
-    }
-
-    function renderHeatmap() {
-      const grid = $("heatmap-grid");
-      grid.innerHTML = "";
-
-      const selectedSubject = $("heatmap-filter").value;
-      const totals = {};
-
-      state.records
-        .filter((record) => selectedSubject === "all" || record.subject === selectedSubject)
-        .forEach((record) => {
-          totals[record.session_date] = (totals[record.session_date] || 0) + Number(record.minutes || 0);
-        });
-
-      const start = new Date(today + "T12:00:00");
-      start.setDate(start.getDate() - 370);
-
-      for (let index = 0; index < 371; index += 1) {
-        const date = new Date(start);
-        date.setDate(start.getDate() + index);
-        const key = date.toISOString().slice(0, 10);
-        const minutes = totals[key] || 0;
-        let level = 0;
-
-        if (minutes > 0 && minutes <= 30) level = 1;
-        else if (minutes <= 60) level = 2;
-        else if (minutes <= 120) level = 3;
-        else if (minutes > 120) level = 4;
-
-        const cell = document.createElement("span");
-        cell.className = `heat-cell ${level ? `heat-${level}` : ""}`;
-        cell.title = `${key}: ${minutes ? `${minutes} minutes` : "No activity"}`;
-        grid.appendChild(cell);
-      }
-
-      $("heatmap-months").innerHTML = ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"]
-        .map((month) => `<span>${month}</span>`)
-        .join("");
-    }
-
-    function renderTimeline() {
-      const list = $("timeline-list");
-      const emptyState = $("empty-timeline");
-      
-      // 1. FILTER the records before sorting based on the current active filter
-      const filteredRecords = state.filter === "all" 
-        ? state.records 
-        : state.records.filter((record) => record.subject === state.filter);
-
-      // 2. Sort the filtered array
-      const sortedRecords = [...filteredRecords].sort((a, b) =>
-        new Date(b.session_date) - new Date(a.session_date) || new Date(b.created_at) - new Date(a.created_at)
-      );
-
-      list.querySelectorAll(".timeline-item").forEach((item) => item.remove());
-      const visibleRecords = sortedRecords.slice(0, state.visibleCount);
-
-      if (!visibleRecords.length) {
-        emptyState.classList.remove("hidden-view");
-      } else {
-        emptyState.classList.add("hidden-view");
-
-        visibleRecords.forEach((record) => {
-          const node = $("timeline-template").content.cloneNode(true);
-          node.querySelector(".session-subject").textContent = record.subject;
-          node.querySelector(".session-subject").style.background = "rgba(25, 199, 124, .13)";
-          node.querySelector(".session-subject").style.color = "var(--mint)";
-          node.querySelector(".session-topic").textContent = record.topic;
-          node.querySelector(".session-date").textContent = formatDate(record.session_date);
-          node.querySelector(".session-duration").textContent = `${record.minutes} minutes focused`;
-          node.querySelector(".session-notes").textContent = record.notes || "No notes added for this session.";
-          list.appendChild(node);
-        });
-      }
-
-      const remaining = Math.max(0, sortedRecords.length - state.visibleCount);
-      const loadMore = $("load-more");
-      $("load-more-count").textContent = remaining ? `(${remaining})` : "";
-      loadMore.classList.toggle("hidden-view", remaining === 0);
-      loadMore.classList.toggle("flex", remaining > 0);
-      lucide.createIcons();
-    }
-
-    function setSavingState(isSaving) {
-      $("save-session").disabled = isSaving;
-      $("save-session-idle").classList.toggle("hidden-view", isSaving);
-      $("save-session-loading").classList.toggle("hidden-view", !isSaving);
-    }
-
-    function setTheme(isLight) {
-      document.body.classList.toggle("light-mode", isLight);
-      $("light-mode-label").classList.toggle("hidden-view", isLight);
-      $("dark-mode-label").classList.toggle("hidden-view", !isLight);
-    }
-
-    const handler = {
-      onDataChanged(data) {
-        state.records = data;
-        updateSubjectsFromRecords();
-        renderSubjects();
-        renderSubjectSelects();
-        calculateStats();
-        renderHeatmap();
-        renderTimeline();
-      }
-    };
-
-    $("subject-form").addEventListener("submit", (event) => {
-      event.preventDefault();
-      const input = $("subject-name");
-      const name = input.value.trim();
-
-      if (!name) return;
-
-      if (state.subjects.some((subject) => subject.toLowerCase() === name.toLowerCase())) {
-        showMessage("That subject is already in your workspace.", "error");
-        return;
-      }
-
-      state.subjects.push(name);
-      input.value = "";
-      renderSubjects();
-      renderSubjectSelects();
-    });
-
-    $("heatmap-filter").addEventListener("change", () => {
-      state.filter = $("heatmap-filter").value;
-      
-      // RESET the visible timeline limit when a new filter is selected
-      state.visibleCount = 5; 
-      
-      renderHeatmap();
-      renderTimeline(); // CALL renderTimeline so the UI updates
-    });
-
-    $("load-more").addEventListener("click", () => {
-      state.visibleCount += 5;
-      renderTimeline();
-    });
-
-    $("theme-toggle").addEventListener("click", () => {
-      setTheme(!document.body.classList.contains("light-mode"));
-    });
-
-    $("session-form").addEventListener("submit", async (event) => {
-      event.preventDefault();
-
-      const topic = $("session-topic").value.trim();
-      const minutes = Number($("session-minutes").value);
-
-      if (!topic || !minutes || minutes < 1) {
-        showMessage("Add a topic and a valid study duration to continue.", "error");
-        return;
-      }
-
-      if (state.records.length >= 999) {
-        showMessage("Your Learning Ledger has reached the 999 session limit. Remove sessions before adding more.", "error");
-        return;
-      }
-
-      setSavingState(true);
-
-      const result = await window.dataSdk.create({
-        subject: $("session-subject").value,
-        topic,
-        minutes,
-        notes: $("session-notes").value.trim(),
-        session_date: $("session-date").value,
-        created_at: new Date().toISOString()
-      });
-
-      setSavingState(false);
-
-      if (result.isOk) {
-        $("session-form").reset();
-        $("session-date").value = today;
-        state.visibleCount = 5;
-        showMessage("Session saved to your Learning Ledger.", "success");
-      } else {
-        showMessage("Your session could not be saved. Please try again.", "error");
-      }
-    });
-
-    async function initialize() {
-      setTheme(false);
-      renderSubjects();
-      renderSubjectSelects();
-      renderHeatmap();
-      renderTimeline();
-      lucide.createIcons();
-
-      const result = await window.dataSdk.init(handler);
-      if (!result.isOk) {
-        showMessage("Learning Ledger could not connect to your saved sessions.", "error");
-      }
-    }
-
-    initialize();
-  </script>
- </body>
+      init();
+    </script>
+  </body>
 </html>
