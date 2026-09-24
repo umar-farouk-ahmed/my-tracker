@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Learning Ledger Dashboard</title>
     
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked & DOMPurify for Markdown Notes -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -30,22 +37,10 @@
               'pulse-soft': 'pulseSoft 3s infinite',
             },
             keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' },
-              },
-              fadeInUp: {
-                '0%': { opacity: '0', transform: 'translateY(30px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
-              },
-              slideInRight: {
-                '0%': { opacity: '0', transform: 'translateX(30px)' },
-                '100%': { opacity: '1', transform: 'translateX(0)' },
-              },
-              pulseSoft: {
-                '0%, 100%': { transform: 'scale(1)', opacity: '1' },
-                '50%': { transform: 'scale(1.05)', opacity: '0.8' },
-              }
+              fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              fadeInUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+              slideInRight: { '0%': { opacity: '0', transform: 'translateX(30px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
+              pulseSoft: { '0%, 100%': { transform: 'scale(1)', opacity: '1' }, '50%': { transform: 'scale(1.05)', opacity: '0.8' } }
             }
           }
         }
@@ -76,7 +71,7 @@
       .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b5563; }
       
       #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; white-space: nowrap; transform: translate(-50%, -100%) scale(0.95); }
-      #tooltip.show { transform: translate(-50%, -110%) scale(1); }
+      #tooltip.show { transform: translate(-50%, -110%) scale(1); opacity: 1; }
       
       .loader { border: 2.5px solid #e2e8f0; border-top: 2.5px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
       .dark .loader { border-color: #374151; border-top-color: #10b981; }
@@ -84,6 +79,20 @@
       
       .toast { transform: translateY(24px) scale(0.95); opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
       .toast.show { transform: translateY(0) scale(1); opacity: 1; }
+
+      /* Markdown Styles */
+      .md-content p { margin-bottom: 0.5rem; }
+      .md-content p:last-child { margin-bottom: 0; }
+      .md-content a { color: #10b981; text-decoration: underline; text-underline-offset: 2px; }
+      .md-content strong { font-weight: 700; color: inherit; }
+      .md-content code { background-color: rgba(0,0,0,0.06); padding: 0.125rem 0.375rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.9em; border: 1px solid rgba(0,0,0,0.05); }
+      .dark .md-content code { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.05); }
+      .md-content pre { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+      .md-content pre code { display: block; padding: 0.75rem; overflow-x: auto; white-space: pre; border-radius: 0.5rem; }
+      .md-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .md-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .md-content blockquote { border-left: 3px solid #10b981; padding-left: 1rem; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #64748b; font-style: italic; }
+      .dark .md-content blockquote { color: #9ca3af; }
     </style>
   </head>
   <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-500 font-sans overflow-x-hidden w-full relative">
@@ -108,8 +117,8 @@
         </button>
       </header>
 
+      <!-- Stats Grid -->
       <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-        <!-- Dashboard Cards (Animations Staggered) -->
         <div class="group p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0ms; opacity: 0;">
           <div class="flex items-center justify-between mb-2">
             <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 group-hover:text-slate-700 dark:group-hover:text-gray-300 transition-colors">Day streak</div>
@@ -140,8 +149,30 @@
         </div>
       </section>
 
+      <!-- Weekly Goals Section -->
+      <section class="w-full p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm animate-fade-in-up" style="animation-delay: 350ms; opacity: 0;">
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 flex items-center gap-2">
+            <i class="ph-bold ph-target text-brand text-lg"></i> Weekly Goal (<span id="goal-target-text">300</span> mins)
+          </div>
+          <button id="edit-goal-btn" class="text-slate-400 hover:text-brand transition-colors p-1" title="Edit Weekly Goal">
+            <i class="ph-bold ph-pencil-simple"></i>
+          </button>
+        </div>
+        <div class="relative w-full h-3 sm:h-4 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
+          <div id="goal-progress-bar" class="absolute top-0 left-0 h-full bg-brand transition-all duration-1000 ease-out w-0 rounded-full flex items-center justify-end overflow-hidden">
+            <div class="w-full h-full bg-white/20 -skew-x-12 translate-x-full animate-[shimmer_2s_infinite]"></div>
+          </div>
+        </div>
+        <div class="flex justify-between mt-2 text-xs font-bold text-slate-600 dark:text-gray-400">
+          <span id="goal-current-text">0 mins</span>
+          <span id="goal-percent-text">0%</span>
+        </div>
+      </section>
+
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 w-full animate-fade-in-up" style="animation-delay: 400ms; opacity: 0;">
         
+        <!-- Left Sidebar: Forms -->
         <div class="lg:col-span-4 space-y-6 w-full min-w-0">
           
           <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden transition-all hover:shadow-lg hover:border-brand/30 duration-300">
@@ -168,7 +199,6 @@
               Log Session
             </h2>
             <form id="log-form" class="space-y-4">
-              <!-- Inputs with focus scale transitions -->
               <div class="group">
                 <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-calendar"></i> Date</label>
                 <input type="date" id="log-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white" />
@@ -188,8 +218,11 @@
                 <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400" />
               </div>
               <div class="group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-article"></i> Notes (Optional)</label>
-                <textarea id="log-notes" rows="2" placeholder="Key takeaways..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400 resize-none custom-scrollbar"></textarea>
+                <div class="flex justify-between items-center mb-2">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-markdown-logo"></i> Notes (Optional)</label>
+                  <span class="text-[10px] font-medium bg-slate-100 dark:bg-gray-800 text-slate-500 px-1.5 rounded">Markdown OK</span>
+                </div>
+                <textarea id="log-notes" rows="3" placeholder="Key takeaways... (You can use **bold**, *italic*, `code`, or [links](url))" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400 resize-none custom-scrollbar"></textarea>
               </div>
               <button type="submit" id="submit-btn" class="w-full mt-4 font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-md bg-slate-900 text-white hover:bg-brand hover:-translate-y-1 hover:shadow-lg dark:bg-white dark:text-gray-900 dark:hover:bg-brand dark:hover:text-white flex items-center justify-center gap-2 active:scale-95">
                 <i class="ph-bold ph-check-circle transition-transform group-hover:scale-110"></i> Save Session
@@ -198,6 +231,7 @@
           </section>
         </div>
 
+        <!-- Right Side: Visualization & Timeline -->
         <div class="lg:col-span-8 space-y-6 w-full min-w-0">
           
           <section class="p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full min-w-0 hover:shadow-lg transition-shadow duration-300">
@@ -213,6 +247,7 @@
               </div>
             </div>
 
+            <!-- Heatmap -->
             <div class="mb-10 relative w-full overflow-hidden">
               <h3 class="text-sm font-bold mb-4 flex items-center gap-2 text-slate-700 dark:text-gray-300">
                 Contribution Graph 
@@ -229,20 +264,37 @@
               </div>
             </div>
 
-            <div>
-              <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                <i class="ph-bold ph-clock-counter-clockwise"></i> Recent Timeline
-              </h3>
-              <div id="logs-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-2">
-                <p class="text-sm italic text-slate-400 dark:text-gray-500 animate-pulse">Loading timeline…</p>
+            <hr class="border-slate-200 dark:border-gray-800 mb-8" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <!-- Time Analytics Chart -->
+              <div>
+                <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                  <i class="ph-bold ph-chart-pie-slice"></i> Time by Subject
+                </h3>
+                <div class="relative w-full flex justify-center bg-slate-50 dark:bg-gray-950/50 rounded-2xl p-4 border border-slate-100 dark:border-gray-800 h-[240px]">
+                  <canvas id="timeChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Timeline -->
+              <div class="flex flex-col">
+                <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                  <i class="ph-bold ph-clock-counter-clockwise"></i> Recent Timeline
+                </h3>
+                <div id="logs-container" class="space-y-3 flex-1 h-[240px] overflow-y-auto pr-2 custom-scrollbar pb-2">
+                  <p class="text-sm italic text-slate-400 dark:text-gray-500 animate-pulse">Loading timeline…</p>
+                </div>
               </div>
             </div>
+
           </section>
 
         </div>
       </div>
     </div>
 
+    <!-- Tooltip & Toasts -->
     <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl border border-slate-700 dark:border-gray-200"></div>
 
     <div id="toast" class="toast fixed bottom-6 right-6 left-6 sm:left-auto text-white font-medium px-6 py-4 rounded-2xl shadow-2xl z-50 text-sm flex items-center gap-3 bg-slate-900 dark:bg-white dark:text-gray-900">
@@ -252,7 +304,10 @@
       <span id="toast-msg">Saved successfully</span>
     </div>
 
-    <!-- Scripts kept exactly the same to preserve functionality -->
+    <style>
+      @keyframes shimmer { 100% { transform: translateX(100%); } }
+    </style>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
       import {
@@ -286,6 +341,11 @@
       let allLogs = [];
       let allSubjects = [];
       let tooltipTimeout;
+      let timeChartInstance = null;
+      let weeklyGoalMins = parseInt(localStorage.getItem('weeklyGoalMins')) || 300;
+
+      // Ensure Marked options are safe (DOMPurify will handle HTML sanitization)
+      marked.setOptions({ breaks: true, gfm: true });
 
       const themeToggle = document.getElementById('theme-toggle');
       const moonIcon = document.getElementById('moon-icon');
@@ -311,7 +371,20 @@
         htmlEl.classList.toggle('dark');
         localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
         updateThemeIcon();
+        if(allLogs.length) applyFilter(); // Re-render chart text colors
       });
+
+      // Weekly Goal Edit
+      document.getElementById('edit-goal-btn').addEventListener('click', () => {
+        const newGoal = prompt("Enter your weekly goal in minutes:", weeklyGoalMins);
+        if(newGoal && !isNaN(newGoal) && parseInt(newGoal) > 0) {
+            weeklyGoalMins = parseInt(newGoal);
+            localStorage.setItem('weeklyGoalMins', weeklyGoalMins);
+            document.getElementById('goal-target-text').textContent = weeklyGoalMins;
+            applyFilter(); 
+        }
+      });
+      document.getElementById('goal-target-text').textContent = weeklyGoalMins;
 
       function showToast(msg) {
         const t = document.getElementById("toast");
@@ -373,12 +446,23 @@
         
         const counts = computeStats(filteredLogs);
         renderHeatmap(counts);
+        renderChart(filteredLogs);
         renderLogs(filteredLogs);
       }
 
       function computeStats(logs) {
         const counts = {};
-        logs.forEach((l) => { const k = dayKey(l.timestamp); counts[k] = (counts[k] || 0) + 1; });
+        let weekTotalMins = 0;
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+
+        logs.forEach((l) => { 
+          const k = dayKey(l.timestamp); 
+          counts[k] = (counts[k] || 0) + 1; 
+          if(new Date(l.timestamp) >= weekAgo) {
+            weekTotalMins += (l.minutes || 0);
+          }
+        });
         
         let streak = 0;
         let cursor = new Date();
@@ -389,16 +473,79 @@
           cursor.setDate(cursor.getDate() - 1);
         }
 
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
         const weekCount = logs.filter((l) => new Date(l.timestamp) >= weekAgo).length;
 
-        // Animate numbers if you want, but fast DOM update is fine here
         document.getElementById("stat-streak").textContent = streak;
         document.getElementById("stat-week").textContent = weekCount;
         document.getElementById("stat-total").textContent = logs.length;
         document.getElementById("stat-days").textContent = Object.keys(counts).length;
+
+        // Update Weekly Goal Progress
+        const goalPercent = Math.min(Math.round((weekTotalMins / weeklyGoalMins) * 100), 100);
+        document.getElementById('goal-current-text').textContent = `${weekTotalMins} mins`;
+        document.getElementById('goal-percent-text').textContent = `${goalPercent}%`;
+        document.getElementById('goal-progress-bar').style.width = `${goalPercent}%`;
+        
+        // Dynamic color for goal completion
+        if(goalPercent >= 100) {
+           document.getElementById('goal-progress-bar').classList.remove('bg-brand');
+           document.getElementById('goal-progress-bar').classList.add('bg-blue-500');
+        } else {
+           document.getElementById('goal-progress-bar').classList.add('bg-brand');
+           document.getElementById('goal-progress-bar').classList.remove('bg-blue-500');
+        }
+
         return counts;
+      }
+
+      function renderChart(logs) {
+        const ctx = document.getElementById('timeChart').getContext('2d');
+        const subjectMins = {};
+        logs.forEach(l => {
+            if(l.minutes) subjectMins[l.subject] = (subjectMins[l.subject] || 0) + l.minutes;
+        });
+
+        const labels = Object.keys(subjectMins);
+        const data = Object.values(subjectMins);
+
+        if(timeChartInstance) { timeChartInstance.destroy(); }
+
+        if(data.length === 0) {
+            // Render placeholder if empty
+            const isDark = document.documentElement.classList.contains('dark');
+            timeChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: [isDark ? '#374151' : '#e2e8f0'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false }, legend: { display: false } } }
+            });
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#9ca3af' : '#475569';
+        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f43f5e'];
+
+        timeChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderWidth: isDark ? 2 : 2,
+                    borderColor: isDark ? '#030712' : '#ffffff' // matches dark:bg-gray-950 and bg-white
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { position: 'right', labels: { color: textColor, font: { family: 'Inter', size: 11 }, usePointStyle: true, boxWidth: 8 } },
+                    tooltip: { callbacks: { label: function(context) { return ` ${context.raw} mins`; } } }
+                }
+            }
+        });
       }
 
       function renderHeatmap(counts) {
@@ -434,7 +581,7 @@
           const triggerTooltip = (e) => {
             clearTimeout(tooltipTimeout);
             const rect = e.target.getBoundingClientRect();
-            tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'long', day:'numeric', year:'numeric'})}`;
+            tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}`;
             tooltip.style.left = (rect.left + window.scrollX + (rect.width / 2)) + "px";
             tooltip.style.top = (rect.top + window.scrollY - 6) + "px";
             tooltip.classList.add("show");
@@ -458,15 +605,17 @@
 
       function renderLogs(logs) {
         if (logs.length === 0) {
-          logsContainer.innerHTML = `<div class="p-8 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium bg-white/50 dark:bg-gray-900/50 animate-fade-in"><i class="ph ph-ghost text-4xl mb-2 text-slate-300 dark:text-gray-600"></i> No sessions found. Time to log one!</div>`;
+          logsContainer.innerHTML = `<div class="p-8 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium bg-white/50 dark:bg-gray-900/50 animate-fade-in"><i class="ph ph-ghost text-4xl mb-2 text-slate-300 dark:text-gray-600"></i> No sessions found.</div>`;
           return;
         }
 
-        // Using slide-in-right instead of fade-in for timeline entries
         logsContainer.innerHTML = logs.map((log, index) => {
           const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
           const delay = Math.min(index * 75, 600); 
           
+          // Parse Markdown and Sanitize
+          const parsedNotes = log.notes ? DOMPurify.sanitize(marked.parse(log.notes)) : null;
+
           return `
             <div class="group relative p-4 pl-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 animate-slide-in-right overflow-hidden" style="animation-delay: ${delay}ms; opacity: 0; animation-fill-mode: forwards;">
               <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand rounded-l-2xl group-hover:w-2 transition-all duration-300"></div>
@@ -478,7 +627,12 @@
                   </div>
                   <h4 class="text-base font-bold text-slate-800 dark:text-white truncate whitespace-normal">${log.topic}</h4>
                   ${log.minutes ? `<div class="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 font-semibold text-slate-600 dark:text-gray-400"><i class="ph-bold ph-hourglass-high text-brand group-hover:animate-spin"></i>${log.minutes} min</div>` : ""}
-                  ${log.notes ? `<p class="text-sm mt-3 leading-relaxed text-slate-600 dark:text-gray-400 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 break-words flex gap-2 shadow-inner"><i class="ph-fill ph-quotes text-brand/50 dark:text-brand/30 text-lg shrink-0"></i>${log.notes}</p>` : ""}
+                  
+                  ${parsedNotes ? `
+                    <div class="text-sm mt-3 leading-relaxed text-slate-700 dark:text-gray-300 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 flex gap-3 shadow-sm md-content overflow-hidden relative">
+                       <i class="ph-fill ph-quotes text-brand/30 dark:text-brand/20 text-xl shrink-0 mt-0.5"></i>
+                       <div class="flex-1 w-full overflow-hidden">${parsedNotes}</div>
+                    </div>` : ""}
                 </div>
                 <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-500 hover:text-white dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-600 dark:hover:text-white shrink-0 flex items-center gap-1 hover:scale-105 active:scale-95" data-id="${log.id}">
                   <i class="ph-bold ph-trash"></i> Delete
