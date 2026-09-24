@@ -182,13 +182,20 @@
               </div>
               Add Subjects
             </h2>
-            <form id="subject-form" class="flex flex-row items-center gap-2 w-full">
+            <form id="subject-form" class="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2 w-full">
               <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 min-w-0 w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
-              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-brand hover:scale-105 active:scale-95 dark:bg-brand dark:hover:bg-brand-dark dark:text-white flex items-center gap-2">
+              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-brand hover:scale-105 active:scale-95 dark:bg-brand dark:hover:bg-brand-dark dark:text-white flex items-center justify-center gap-2">
                 Add
               </button>
             </form>
             <div id="subject-list" class="mt-5 flex flex-wrap gap-2 text-xs"></div>
+
+            <div id="completed-subjects-section" class="mt-5 pt-4 border-t border-slate-200 dark:border-gray-800 hidden">
+              <h3 class="text-[11px] font-bold uppercase tracking-wider mb-3 text-slate-400 dark:text-gray-500 flex items-center gap-1.5">
+                <i class="ph-bold ph-check-circle text-brand"></i> Completed Subjects
+              </h3>
+              <div id="completed-subject-list" class="flex flex-wrap gap-2 text-xs"></div>
+            </div>
           </section>
 
           <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full transition-all hover:shadow-lg hover:border-brand/30 duration-300">
@@ -311,7 +318,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
       import {
-        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy,
+        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, updateDoc,
       } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -398,6 +405,24 @@
         return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
       }
 
+      // Looks up a matching icon for a subject name using the free Iconify
+      // search API (covers CS/dev/AI/framework brand + concept icons) and
+      // returns a ready-to-use SVG URL, or null if nothing was found.
+      async function fetchIconForSubject(name) {
+        try {
+          const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(name)}&limit=1`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          if (data && data.icons && data.icons.length > 0) {
+            const [prefix, iconName] = data.icons[0].split(':');
+            if (prefix && iconName) return `https://api.iconify.design/${prefix}/${iconName}.svg`;
+          }
+        } catch (err) {
+          console.warn("Icon lookup failed", err);
+        }
+        return null;
+      }
+
       async function loadSubjects() {
         const snap = await getDocs(query(subsCol, orderBy("name", "asc")));
         allSubjects = [];
@@ -405,19 +430,67 @@
         renderSubjectUI();
       }
 
-      function renderSubjectUI() {
-        const list = document.getElementById("subject-list");
-        list.innerHTML = allSubjects.map(s => 
-          `<span class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm flex items-center gap-1.5 hover:scale-105 hover:bg-slate-200 dark:hover:bg-gray-700 cursor-pointer transition-all"><i class="ph ph-hash text-brand"></i>${s.name}</span>`
-        ).join('');
+      function subjectChipHTML(s, completed) {
+        const iconHTML = s.iconUrl
+          ? `<img src="${s.iconUrl}" alt="" class="w-3.5 h-3.5 shrink-0" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph ph-hash text-brand'}))" />`
+          : `<i class="ph ph-hash text-brand"></i>`;
+        const wrapClasses = completed
+          ? "px-3 py-1.5 rounded-lg border border-brand/30 bg-brand/5 dark:bg-brand/10 font-semibold text-slate-500 dark:text-gray-400 shadow-sm flex items-center gap-1.5 transition-all line-through decoration-brand/50"
+          : "px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm flex items-center gap-1.5 hover:scale-105 hover:bg-slate-200 dark:hover:bg-gray-700 transition-all";
+        const btnTitle = completed ? "Mark as active" : "Mark as complete";
+        const btnIcon = completed ? "ph-arrow-counter-clockwise" : "ph-check-circle";
+        return `<span class="${wrapClasses}">
+            ${iconHTML}<span class="${completed ? '' : ''}">${s.name}</span>
+            <button type="button" data-subject-id="${s.id}" data-completed="${completed}" title="${btnTitle}" class="ml-1 -mr-1 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-brand hover:bg-white dark:hover:bg-gray-900 transition-colors shrink-0">
+              <i class="ph-bold ${btnIcon} text-sm"></i>
+            </button>
+          </span>`;
+      }
 
+      function renderSubjectUI() {
+        const activeSubjects = allSubjects.filter(s => !s.completed);
+        const completedSubjects = allSubjects.filter(s => s.completed);
+
+        const list = document.getElementById("subject-list");
+        list.innerHTML = activeSubjects.length
+          ? activeSubjects.map(s => subjectChipHTML(s, false)).join('')
+          : `<span class="text-xs italic text-slate-400 dark:text-gray-500">No active subjects yet.</span>`;
+
+        const completedSection = document.getElementById("completed-subjects-section");
+        const completedList = document.getElementById("completed-subject-list");
+        if (completedSubjects.length) {
+          completedSection.classList.remove("hidden");
+          completedList.innerHTML = completedSubjects.map(s => subjectChipHTML(s, true)).join('');
+        } else {
+          completedSection.classList.add("hidden");
+          completedList.innerHTML = "";
+        }
+
+        // Toggle complete/active on click
+        document.querySelectorAll("[data-subject-id]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.subjectId;
+            const nowCompleted = btn.dataset.completed !== "true";
+            try {
+              await updateDoc(doc(db, "subjects", id), { completed: nowCompleted });
+              showToast(nowCompleted ? "Subject marked complete" : "Subject marked active");
+              loadSubjects();
+            } catch (err) {
+              console.error(err);
+              showToast("Couldn't update subject");
+            }
+          });
+        });
+
+        // Log form only offers active (not-yet-completed) subjects
         const logOpts = `<option value="" disabled selected>Select a subject...</option>` + 
-                        allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                        activeSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
         logSubjectSelect.innerHTML = logOpts;
 
+        // Filter dropdown keeps all subjects so history stays visible after completion
         const currentFilter = filterSubjectSelect.value;
         const filterOpts = `<option value="ALL">All Subjects</option>` + 
-                           allSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                           allSubjects.map(s => `<option value="${s.name}">${s.name}${s.completed ? ' ✓' : ''}</option>`).join('');
         filterSubjectSelect.innerHTML = filterOpts;
         filterSubjectSelect.value = currentFilter || "ALL";
       }
@@ -667,10 +740,18 @@
         if(!name) return;
         
         try {
-          await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
+          const ref = await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
           input.value = "";
           showToast("Subject added");
           loadSubjects();
+
+          // Auto-fetch a matching icon in the background; doesn't block the
+          // add flow and silently no-ops if a match isn't found.
+          fetchIconForSubject(name).then(iconUrl => {
+            if (iconUrl) {
+              updateDoc(doc(db, "subjects", ref.id), { iconUrl }).then(loadSubjects);
+            }
+          });
         } catch (err) {
           console.error(err);
           showToast("Couldn't add subject");
