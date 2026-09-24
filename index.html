@@ -242,7 +242,7 @@
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
       import {
-        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy,
+        getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, where
       } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -272,6 +272,7 @@
       let allLogs = [];
       let allSubjects = [];
       let tooltipTimeout;
+      let currentRenderLimit = 10;
 
       const themeToggle = document.getElementById('theme-toggle');
       const moonIcon = document.getElementById('moon-icon');
@@ -306,7 +307,6 @@
         setTimeout(() => t.classList.remove("show"), 2500);
       }
       
-      // FIXED: Uses local timezone representation instead of UTC shift
       function dayKey(d) { 
         const dt = new Date(d);
         return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
@@ -338,7 +338,14 @@
 
       async function loadLogs() {
         try {
-          const q = query(logsCol, orderBy("timestamp", "desc"));
+          const oneYearAgo = new Date();
+          oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+          
+          const q = query(
+            logsCol, 
+            where("timestamp", ">=", oneYearAgo.toISOString()), 
+            orderBy("timestamp", "desc")
+          );
           const snap = await getDocs(q);
           allLogs = [];
           snap.forEach((d) => allLogs.push({ id: d.id, ...d.data() }));
@@ -369,7 +376,7 @@
         
         let streak = 0;
         let cursor = new Date();
-        cursor.setHours(12, 0, 0, 0); // FIXED: Prevent streak breaking via timezone shift
+        cursor.setHours(12, 0, 0, 0);
         if (!counts[dayKey(cursor)]) cursor.setDate(cursor.getDate() - 1);
         while (counts[dayKey(cursor)]) {
           streak++;
@@ -394,7 +401,7 @@
         const scrollArea = document.getElementById("heatmap-scroll-area");
         
         const today = new Date();
-        today.setHours(12, 0, 0, 0); // FIXED: Set to noon to avoid boundary shifting
+        today.setHours(12, 0, 0, 0);
         
         const start = new Date(today);
         start.setDate(start.getDate() - 364);
@@ -450,7 +457,9 @@
           return;
         }
 
-        logsContainer.innerHTML = logs.map((log, index) => {
+        const visibleLogs = logs.slice(0, currentRenderLimit);
+
+        let html = visibleLogs.map((log, index) => {
           const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
           const delay = Math.min(index * 50, 500); 
           
@@ -475,6 +484,16 @@
           `;
         }).join('');
 
+        if (logs.length > currentRenderLimit) {
+          html += `
+            <button id="load-more-btn" class="w-full py-3.5 mt-2 rounded-xl text-sm font-semibold text-slate-600 dark:text-gray-300 bg-slate-200/50 hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2">
+              <i class="ph-bold ph-caret-down"></i> Load More (${logs.length - currentRenderLimit} remaining)
+            </button>
+          `;
+        }
+
+        logsContainer.innerHTML = html;
+
         document.querySelectorAll(".group button").forEach(btn => {
           btn.addEventListener("click", async (e) => {
             if(!confirm("Delete this session?")) return;
@@ -489,9 +508,20 @@
             }
           });
         });
+
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        if (loadMoreBtn) {
+          loadMoreBtn.addEventListener('click', () => {
+            currentRenderLimit += 15; 
+            renderLogs(logs); 
+          });
+        }
       }
 
-      filterSubjectSelect.addEventListener("change", applyFilter);
+      filterSubjectSelect.addEventListener("change", () => {
+        currentRenderLimit = 10;
+        applyFilter();
+      });
 
       document.getElementById("subject-form").addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -518,8 +548,6 @@
         const notes = document.getElementById("log-notes").value.trim();
         const minutes = document.getElementById("log-minutes").value;
         
-        // FIXED: Explicitly construct the date in the local timezone (noon) 
-        // to prevent UTC conversion from shifting it to the previous day
         const dateStr = dateInput.value;
         const [y, m, d] = dateStr.split('-');
         const dateVal = new Date(y, m - 1, d, 12, 0, 0); 
