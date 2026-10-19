@@ -1,18 +1,21 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Learning Ledger Dashboard</title>
-    
+    <title>Chronos // Learning & Engineering Ledger</title>
+
     <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Marked & DOMPurify for Markdown Notes -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
 
     <script>
       tailwind.config = {
@@ -20,307 +23,611 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              sans: ['Plus Jakarta Sans', 'sans-serif'],
               display: ['Space Grotesk', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
-              brand: {
-                light: '#a7f3d0',
+              accent: {
+                50: '#eef2ff',
+                100: '#e0e7ff',
+                400: '#818cf8',
+                500: '#6366f1',
+                600: '#4f46e5',
+                700: '#4338ca',
+              },
+              cyber: {
                 DEFAULT: '#10b981',
-                dark: '#047857',
+                glow: '#34d399',
+              },
+              surface: {
+                light: '#ffffff',
+                dark: '#0b0f17',
+                cardDark: '#111827',
+                borderDark: '#1f2937'
               }
-            },
-            animation: {
-              'fade-in': 'fadeIn 0.5s ease-out forwards',
-              'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'slide-in-right': 'slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-              'pulse-soft': 'pulseSoft 3s infinite',
-            },
-            keyframes: {
-              fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-              fadeInUp: { '0%': { opacity: '0', transform: 'translateY(30px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-              slideInRight: { '0%': { opacity: '0', transform: 'translateX(30px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
-              pulseSoft: { '0%, 100%': { transform: 'scale(1)', opacity: '1' }, '50%': { transform: 'scale(1.05)', opacity: '0.8' } }
             }
           }
         }
-      }
+      };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <style>
-      .heatmap-grid { display: grid; grid-template-rows: repeat(7, 13px); grid-auto-columns: 13px; grid-auto-flow: column; gap: 4px; }
-      .day-cell { width: 13px; height: 13px; border-radius: 3px; cursor: default; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease; }
-      .day-cell[data-count]:not([data-count="0"]) { cursor: pointer; }
-      .day-cell:hover { transform: scale(1.6); z-index: 10; box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
-      
-      .day-cell.l0 { background-color: #f1f5f9; } 
-      .day-cell.l1 { background-color: #a7f3d0; } 
-      .day-cell.l2 { background-color: #34d399; } 
-      .day-cell.l3 { background-color: #10b981; } 
-      .day-cell.l4 { background-color: #047857; } 
-      
-      .dark .day-cell.l0 { background-color: #1f2937; } 
-      .dark .day-cell.l1 { background-color: #064e3b; } 
-      .dark .day-cell.l2 { background-color: #047857; } 
-      .dark .day-cell.l3 { background-color: #10b981; } 
-      .dark .day-cell.l4 { background-color: #6ee7b7; } 
-      
-      .custom-scrollbar { overflow-x: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-      .custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #4b5563; }
-      
-      #tooltip { position: absolute; pointer-events: none; opacity: 0; transition: opacity .2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; white-space: nowrap; transform: translate(-50%, -100%) scale(0.95); }
-      #tooltip.show { transform: translate(-50%, -110%) scale(1); opacity: 1; }
-      
-      .loader { border: 2.5px solid #e2e8f0; border-top: 2.5px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin .8s linear infinite; }
-      .dark .loader { border-color: #374151; border-top-color: #10b981; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      
-      .toast { transform: translateY(24px) scale(0.95); opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
-      .toast.show { transform: translateY(0) scale(1); opacity: 1; }
 
-      /* Markdown Styles */
-      .md-content p { margin-bottom: 0.5rem; }
+    <style>
+      :root {
+        --cell-size: 13px;
+        --cell-gap: 4px;
+      }
+
+      body {
+        background-image: 
+          radial-gradient(at 15% 5%, rgba(99, 102, 241, 0.08) 0px, transparent 45%),
+          radial-gradient(at 85% 15%, rgba(16, 185, 129, 0.07) 0px, transparent 45%);
+        background-attachment: fixed;
+      }
+
+      /* Heatmap Matrix */
+      .heatmap-months {
+        display: grid;
+        grid-auto-columns: var(--cell-size);
+        grid-auto-flow: column;
+        gap: var(--cell-gap);
+        height: 18px;
+        margin-bottom: 4px;
+      }
+      .heatmap-grid {
+        display: grid;
+        grid-template-rows: repeat(7, var(--cell-size));
+        grid-auto-columns: var(--cell-size);
+        grid-auto-flow: column;
+        gap: var(--cell-gap);
+      }
+      .day-cell {
+        width: var(--cell-size);
+        height: var(--cell-size);
+        border-radius: 3.5px;
+        transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, outline 0.15s ease;
+      }
+      .day-cell[data-active="true"] {
+        cursor: pointer;
+      }
+      .day-cell:hover {
+        transform: scale(1.45);
+        z-index: 20;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      }
+      .day-cell.selected-day {
+        outline: 2px solid #f59e0b;
+        outline-offset: 1px;
+        transform: scale(1.25);
+        z-index: 15;
+      }
+
+      /* Light Mode Heatmap Levels */
+      .day-cell.l0 { background-color: #e2e8f0; }
+      .day-cell.l1 { background-color: #c7d2fe; }
+      .day-cell.l2 { background-color: #818cf8; }
+      .day-cell.l3 { background-color: #4f46e5; }
+      .day-cell.l4 { background-color: #10b981; }
+
+      /* Dark Mode Heatmap Levels */
+      .dark .day-cell.l0 { background-color: #1e293b; }
+      .dark .day-cell.l1 { background-color: #312e81; }
+      .dark .day-cell.l2 { background-color: #4f46e5; }
+      .dark .day-cell.l3 { background-color: #6366f1; }
+      .dark .day-cell.l4 { background-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.35); }
+
+      /* Scrollbars */
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(148, 163, 184, 0.3);
+        border-radius: 9999px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(99, 102, 241, 0.6);
+      }
+
+      /* Tooltip */
+      #tooltip {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 9999;
+        white-space: nowrap;
+        transform: translate(-50%, -105%) scale(0.95);
+      }
+      #tooltip.show {
+        opacity: 1;
+        transform: translate(-50%, -115%) scale(1);
+      }
+
+      /* Toast */
+      .toast-notification {
+        transform: translateY(20px) scale(0.95);
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      .toast-notification.show {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+
+      /* Markdown Content Styling */
+      .md-content p { margin-bottom: 0.45rem; }
       .md-content p:last-child { margin-bottom: 0; }
-      .md-content a { color: #10b981; text-decoration: underline; text-underline-offset: 2px; }
-      .md-content strong { font-weight: 700; color: inherit; }
-      .md-content code { background-color: rgba(0,0,0,0.06); padding: 0.125rem 0.375rem; border-radius: 0.375rem; font-family: monospace; font-size: 0.9em; border: 1px solid rgba(0,0,0,0.05); }
-      .dark .md-content code { background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.05); }
-      .md-content pre { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-      .md-content pre code { display: block; padding: 0.75rem; overflow-x: auto; white-space: pre; border-radius: 0.5rem; }
-      .md-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-      .md-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-      .md-content blockquote { border-left: 3px solid #10b981; padding-left: 1rem; margin-top: 0.5rem; margin-bottom: 0.5rem; color: #64748b; font-style: italic; }
-      .dark .md-content blockquote { color: #9ca3af; }
+      .md-content a { color: #6366f1; text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+      .dark .md-content a { color: #818cf8; }
+      .md-content code {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82em;
+        background: rgba(99, 102, 241, 0.1);
+        color: #4f46e5;
+        padding: 0.15rem 0.35rem;
+        border-radius: 0.3rem;
+      }
+      .dark .md-content code {
+        background: rgba(129, 140, 248, 0.15);
+        color: #a5b4fc;
+      }
+      .md-content pre {
+        margin: 0.5rem 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+      }
+      .md-content pre code {
+        background: transparent;
+        color: inherit;
+        padding: 0;
+      }
+      .md-content ul { list-style-type: disc; padding-left: 1.25rem; margin-bottom: 0.45rem; }
+      .md-content ol { list-style-type: decimal; padding-left: 1.25rem; margin-bottom: 0.45rem; }
+      .md-content blockquote {
+        border-left: 3px solid #6366f1;
+        padding-left: 0.75rem;
+        color: #64748b;
+        font-style: italic;
+        margin: 0.4rem 0;
+      }
     </style>
   </head>
-  <body class="min-h-screen py-6 sm:py-8 px-4 sm:px-8 bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-500 font-sans overflow-x-hidden w-full relative">
-    
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] max-w-full h-[400px] bg-brand/10 dark:bg-brand/5 rounded-full blur-[120px] pointer-events-none -z-10 animate-pulse-soft"></div>
 
-    <div class="max-w-6xl mx-auto space-y-6 sm:space-y-8 relative w-full">
+  <body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#090d16] dark:text-slate-100 font-sans antialiased selection:bg-accent-500 selection:text-white pb-12">
 
-      <header class="flex justify-between items-center backdrop-blur-md bg-white/60 dark:bg-gray-900/60 p-4 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm w-full hover:shadow-md transition-shadow duration-300">
-        <div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight font-display bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-gray-400 bg-clip-text text-transparent flex items-center gap-2 hover:scale-[1.02] transition-transform origin-left">
-            <i class="ph-fill ph-book-open text-brand hover:rotate-12 transition-transform duration-300"></i> Learning Ledger
-          </h1>
-          <div id="status-indicator" class="flex items-center gap-2 text-xs mt-1 text-slate-500 dark:text-gray-400 font-medium">
-            <div class="loader" id="loading-spinner"></div>
-            <span id="status-text">Syncing database…</span>
+    <!-- Top Navigation / Command Bar -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-white/75 dark:bg-[#090d16]/80 border-b border-slate-200/80 dark:border-slate-800/80">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        
+        <!-- Brand & Live Sync Status -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-600 to-emerald-500 flex items-center justify-center text-white shadow-lg shadow-accent-500/20">
+            <i class="ph-bold ph-terminal-window text-xl"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-lg sm:text-xl font-bold font-display tracking-tight text-slate-900 dark:text-white">
+                Chronos<span class="text-accent-500 font-mono text-sm ml-1">// Ledger</span>
+              </h1>
+              <span id="status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                <span id="status-text">Syncing...</span>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">
+              Personal Engineering & Study Telemetry • Firebase Cloud
+            </p>
           </div>
         </div>
-        <button id="theme-toggle" class="shrink-0 p-3 rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 dark:hover:bg-gray-700 transition-all duration-300 text-slate-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand/50">
-          <i id="moon-icon" class="ph-fill ph-moon text-lg hidden"></i>
-          <i id="sun-icon" class="ph-fill ph-sun text-lg text-amber-500 hover:rotate-90 transition-transform duration-500"></i>
-        </button>
-      </header>
 
-      <!-- Stats Grid -->
-      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
-        <div class="group p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0ms; opacity: 0;">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 group-hover:text-slate-700 dark:group-hover:text-gray-300 transition-colors">Day streak</div>
-            <i class="ph-fill ph-fire text-orange-500 text-lg group-hover:scale-125 transition-transform duration-300"></i>
-          </div>
-          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-streak">0</div>
-        </div>
-        <div class="group p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up" style="animation-delay: 100ms; opacity: 0;">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 group-hover:text-slate-700 dark:group-hover:text-gray-300 transition-colors">Past 7 Days</div>
-            <i class="ph-fill ph-trend-up text-blue-500 text-lg group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300"></i>
-          </div>
-          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-week">0</div>
-        </div>
-        <div class="group p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up" style="animation-delay: 200ms; opacity: 0;">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 group-hover:text-slate-700 dark:group-hover:text-gray-300 transition-colors">Total Logged</div>
-            <i class="ph-fill ph-books text-brand text-lg group-hover:-rotate-12 group-hover:scale-110 transition-transform duration-300"></i>
-          </div>
-          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-total">0</div>
-        </div>
-        <div class="group p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 animate-fade-in-up" style="animation-delay: 300ms; opacity: 0;">
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-[10px] sm:text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 group-hover:text-slate-700 dark:group-hover:text-gray-300 transition-colors">Active Days</div>
-            <i class="ph-fill ph-calendar-check text-purple-500 text-lg group-hover:rotate-12 transition-transform duration-300"></i>
-          </div>
-          <div class="text-3xl sm:text-4xl font-bold font-display text-slate-800 dark:text-white" id="stat-days">0</div>
-        </div>
-      </section>
-
-      <!-- Weekly Goals Section -->
-      <section class="w-full p-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur shadow-sm animate-fade-in-up" style="animation-delay: 350ms; opacity: 0;">
-        <div class="flex items-center justify-between mb-3">
-          <div class="text-xs uppercase tracking-widest font-semibold text-slate-500 dark:text-gray-400 flex items-center gap-2">
-            <i class="ph-bold ph-target text-brand text-lg"></i> Weekly Goal (<span id="goal-target-text">300</span> mins)
-          </div>
-          <button id="edit-goal-btn" class="text-slate-400 hover:text-brand transition-colors p-1" title="Edit Weekly Goal">
-            <i class="ph-bold ph-pencil-simple"></i>
+        <!-- Quick Actions: Backup & Theme -->
+        <div class="flex items-center gap-2">
+          <button id="export-csv-btn" title="Export logs as CSV" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-accent-500/50 text-slate-700 dark:text-slate-300 transition-all">
+            <i class="ph-bold ph-file-csv text-emerald-500 text-sm"></i> CSV
+          </button>
+          <button id="export-json-btn" title="Backup data as JSON" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-accent-500/50 text-slate-700 dark:text-slate-300 transition-all">
+            <i class="ph-bold ph-download-simple text-accent-500 text-sm"></i> <span class="hidden xs:inline">Backup</span>
+          </button>
+          <button id="theme-toggle" aria-label="Toggle theme" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-accent-500/50 text-slate-700 dark:text-slate-200 transition-all">
+            <i id="moon-icon" class="ph-fill ph-moon text-lg hidden text-indigo-400"></i>
+            <i id="sun-icon" class="ph-fill ph-sun text-lg text-amber-500"></i>
           </button>
         </div>
-        <div class="relative w-full h-3 sm:h-4 bg-slate-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
-          <div id="goal-progress-bar" class="absolute top-0 left-0 h-full bg-brand transition-all duration-1000 ease-out w-0 rounded-full flex items-center justify-end overflow-hidden">
-            <div class="w-full h-full bg-white/20 -skew-x-12 translate-x-full animate-[shimmer_2s_infinite]"></div>
+
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+      <!-- Top Row: 5 Telemetry KPI Cards + Weekly Target Bar -->
+      <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        
+        <!-- Current Streak -->
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+          <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <span>Current Streak</span>
+            <i class="ph-fill ph-fire text-orange-500 text-lg group-hover:scale-125 transition-transform"></i>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span id="stat-streak" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">0</span>
+            <span class="text-xs text-slate-400 font-medium">days</span>
+          </div>
+          <div id="stat-best-streak" class="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            Best: 0d
           </div>
         </div>
-        <div class="flex justify-between mt-2 text-xs font-bold text-slate-600 dark:text-gray-400">
-          <span id="goal-current-text">0 mins</span>
-          <span id="goal-percent-text">0%</span>
+
+        <!-- Deep Work Hours -->
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+          <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <span>Total Time</span>
+            <i class="ph-fill ph-clock-countdown text-accent-500 text-lg group-hover:rotate-12 transition-transform"></i>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span id="stat-hours" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">0.0</span>
+            <span class="text-xs text-slate-400 font-medium">hrs</span>
+          </div>
+          <div id="stat-mins-sub" class="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            0 total mins
+          </div>
         </div>
+
+        <!-- 7-Day Velocity -->
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+          <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <span>Last 7 Days</span>
+            <i class="ph-fill ph-trend-up text-emerald-500 text-lg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span id="stat-week-mins" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">0</span>
+            <span class="text-xs text-slate-400 font-medium">mins</span>
+          </div>
+          <div id="stat-week-sessions" class="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            0 sessions logged
+          </div>
+        </div>
+
+        <!-- Total Sessions -->
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+          <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
+            <span>Sessions</span>
+            <i class="ph-fill ph-stack text-sky-500 text-lg group-hover:scale-110 transition-transform"></i>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span id="stat-total" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">0</span>
+            <span class="text-xs text-slate-400 font-medium">logs</span>
+          </div>
+          <div id="stat-avg-session" class="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            Avg: 0m / session
+          </div>
+        </div>
+
+        <!-- Active Days & Weekly Target -->
+        <div class="col-span-2 sm:col-span-1 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+              <span>Weekly Goal</span>
+              <button id="edit-goal-btn" class="text-slate-400 hover:text-accent-500 transition-colors" title="Set Weekly Target">
+                <i class="ph-bold ph-gear-six"></i>
+              </button>
+            </div>
+            <div class="flex items-baseline justify-between">
+              <span id="goal-percent-text" class="text-2xl font-bold font-mono text-accent-600 dark:text-accent-400">0%</span>
+              <span class="text-[11px] font-mono text-slate-400"><span id="goal-current-text">0</span>/<span id="goal-target-text">300</span>m</span>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div id="goal-progress-bar" class="h-full bg-gradient-to-r from-accent-500 to-emerald-400 transition-all duration-700 w-0 rounded-full"></div>
+            </div>
+            <div class="mt-1.5 flex justify-between text-[10px] font-mono text-slate-400">
+              <span>Active Days: <strong id="stat-days" class="text-slate-700 dark:text-slate-200">0</strong></span>
+              <span id="goal-status-label">In Progress</span>
+            </div>
+          </div>
+        </div>
+
       </section>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 w-full animate-fade-in-up" style="animation-delay: 400ms; opacity: 0;">
-        
-        <!-- Left Sidebar: Forms -->
-        <div class="lg:col-span-4 space-y-6 w-full min-w-0">
-          
-          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden transition-all hover:shadow-lg hover:border-brand/30 duration-300">
-            <h2 class="text-lg font-bold font-display mb-4 flex items-center gap-2">
-              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
-                <i class="ph-bold ph-folder-plus text-lg animate-pulse-soft"></i>
+      <!-- Main Workspace Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Column (4 cols): Focus Timer + Session Logger + Subject Manager -->
+        <div class="lg:col-span-4 space-y-6">
+
+          <!-- 1. Built-In Pomodoro / Deep Work Timer -->
+          <section class="p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <i class="ph-fill ph-timer text-accent-500 text-base"></i> Focus Engine
+              </h2>
+              <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-[11px] font-mono font-semibold">
+                <button type="button" data-timer-mode="25" class="timer-preset px-2 py-0.5 rounded bg-white dark:bg-slate-900 text-accent-500 shadow-sm">25m</button>
+                <button type="button" data-timer-mode="50" class="timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white">50m</button>
+                <button type="button" data-timer-mode="0" class="timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white">Stopwatch</button>
               </div>
-              Add Subjects
+            </div>
+
+            <div class="py-4 px-4 rounded-2xl bg-slate-50 dark:bg-[#0b0f17] border border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between">
+              <div>
+                <div id="timer-display" class="text-3xl sm:text-4xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
+                  25:00
+                </div>
+                <div id="timer-substatus" class="text-[11px] font-mono text-slate-400 mt-0.5">
+                  Ready to focus
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button type="button" id="timer-start-btn" class="w-10 h-10 rounded-xl bg-accent-600 hover:bg-accent-500 text-white flex items-center justify-center shadow-md shadow-accent-600/20 transition-all">
+                  <i id="timer-play-icon" class="ph-fill ph-play text-lg"></i>
+                </button>
+                <button type="button" id="timer-reset-btn" title="Reset Timer" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all">
+                  <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="button" id="timer-apply-btn" class="mt-3 w-full py-2 rounded-xl border border-dashed border-accent-500/40 text-accent-600 dark:text-accent-400 hover:bg-accent-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+              <i class="ph-bold ph-arrow-Elbow-right-down"></i> Transfer Elapsed Minutes to Logger
+            </button>
+          </section>
+
+          <!-- 2. Log Session Form (Supports Create & Edit) -->
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-base font-bold font-display flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-accent-500/10 text-accent-500 flex items-center justify-center">
+                  <i class="ph-bold ph-plus-circle"></i>
+                </span>
+                <span id="form-mode-title">Log Study Session</span>
+              </h2>
+              <button type="button" id="cancel-edit-btn" class="hidden text-xs font-semibold text-rose-500 hover:underline">
+                Cancel Edit
+              </button>
+            </div>
+
+            <form id="log-form" class="space-y-3.5">
+              <input type="hidden" id="edit-log-id" value="" />
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Date</label>
+                  <input type="date" id="log-date" required class="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Duration (Mins)</label>
+                  <input type="number" id="log-minutes" placeholder="45" min="1" required class="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+                </div>
+              </div>
+
+              <!-- Quick Minute Pills -->
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <span class="text-[10px] font-mono uppercase text-slate-400 mr-1">Quick:</span>
+                <button type="button" data-quick-min="15" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+15m</button>
+                <button type="button" data-quick-min="30" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+30m</button>
+                <button type="button" data-quick-min="60" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+60m</button>
+                <button type="button" data-quick-min="90" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+90m</button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Subject</label>
+                  <select id="log-subject" required class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white cursor-pointer">
+                    <option value="" disabled selected>Select subject...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Type</label>
+                  <select id="log-tag" class="w-full px-2.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white cursor-pointer">
+                    <option value="Deep Work">⚡ Deep</option>
+                    <option value="Hands-On Lab">🛠️ Lab</option>
+                    <option value="Theory">📖 Theory</option>
+                    <option value="Review">🔄 Review</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Topic / Milestone Covered</label>
+                <input type="text" id="log-topic" placeholder="e.g. PostgreSQL Indexing & B-Tree Internals" required class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Markdown Notes</label>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">Supports `code` & lists</span>
+                </div>
+                <textarea id="log-notes" rows="3" placeholder="Key takeaways, links, or code snippets..." class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white resize-y custom-scrollbar"></textarea>
+              </div>
+
+              <button type="submit" id="submit-btn" class="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-accent-600 to-indigo-600 hover:from-accent-500 hover:to-indigo-500 text-white shadow-lg shadow-accent-600/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                <i class="ph-bold ph-floppy-disk text-base"></i> <span id="submit-btn-text">Commit Session</span>
+              </button>
+            </form>
+          </section>
+
+          <!-- 3. Subject Registry -->
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm">
+            <h2 class="text-base font-bold font-display mb-3 flex items-center justify-between">
+              <span class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                  <i class="ph-bold ph-folders"></i>
+                </span>
+                Subjects & Tracks
+              </span>
+              <span id="subject-count-badge" class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">0 active</span>
             </h2>
-            <form id="subject-form" class="flex flex-col xs:flex-row sm:flex-row items-stretch sm:items-center gap-2 w-full">
-              <input type="text" id="new-subject" placeholder="e.g. React, Python" required class="flex-1 min-w-0 w-full px-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all dark:text-white placeholder-slate-400" />
-              <button type="submit" class="shrink-0 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm bg-slate-900 hover:bg-brand hover:scale-105 active:scale-95 dark:bg-brand dark:hover:bg-brand-dark dark:text-white flex items-center justify-center gap-2">
+
+            <form id="subject-form" class="flex gap-2 mb-4">
+              <input type="text" id="new-subject" placeholder="Add track (e.g. AWS, Spring Boot, System Design)" required class="flex-1 min-w-0 px-3.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+              <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-accent-600 dark:hover:bg-accent-400 transition-colors shrink-0">
                 Add
               </button>
             </form>
-            <div id="subject-list" class="mt-5 flex flex-wrap gap-2 text-xs"></div>
 
-            <div id="completed-subjects-section" class="mt-5 pt-4 border-t border-slate-200 dark:border-gray-800 hidden">
-              <h3 class="text-[11px] font-bold uppercase tracking-wider mb-3 text-slate-400 dark:text-gray-500 flex items-center gap-1.5">
-                <i class="ph-bold ph-check-circle text-brand"></i> Completed Subjects
-              </h3>
+            <div id="subject-list" class="flex flex-wrap gap-2 text-xs"></div>
+
+            <div id="completed-subjects-section" class="mt-4 pt-4 border-t border-slate-200/70 dark:border-slate-800 hidden">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
+                <i class="ph-fill ph-check-circle text-emerald-500"></i> Archived / Completed Tracks
+              </div>
               <div id="completed-subject-list" class="flex flex-wrap gap-2 text-xs"></div>
             </div>
           </section>
 
-          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full transition-all hover:shadow-lg hover:border-brand/30 duration-300">
-            <h2 class="text-lg font-bold font-display mb-5 flex items-center gap-2">
-              <div class="bg-brand/10 text-brand w-8 h-8 rounded-full flex items-center justify-center">
-                <i class="ph-bold ph-pencil-simple-line text-lg animate-pulse-soft" style="animation-delay: 500ms;"></i>
-              </div>
-              Log Session
-            </h2>
-            <form id="log-form" class="space-y-4">
-              <div class="group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-calendar"></i> Date</label>
-                <input type="date" id="log-date" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white" />
-              </div>
-              <div class="group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-bookmarks"></i> Subject</label>
-                <select id="log-subject" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white cursor-pointer">
-                  <option value="" disabled selected>Select a subject...</option>
-                </select>
-              </div>
-              <div class="group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-text-t"></i> Topic covered</label>
-                <input type="text" id="log-topic" placeholder="e.g. Array Methods" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400" />
-              </div>
-              <div class="group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider mb-2 text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-clock"></i> Minutes</label>
-                <input type="number" id="log-minutes" placeholder="30" min="1" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400" />
-              </div>
-              <div class="group">
-                <div class="flex justify-between items-center mb-2">
-                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-gray-400 flex items-center gap-1 group-focus-within:text-brand transition-colors"><i class="ph ph-markdown-logo"></i> Notes (Optional)</label>
-                  <span class="text-[10px] font-medium bg-slate-100 dark:bg-gray-800 text-slate-500 px-1.5 rounded">Markdown OK</span>
-                </div>
-                <textarea id="log-notes" rows="3" placeholder="Key takeaways... (You can use **bold**, *italic*, `code`, or [links](url))" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-gray-700 bg-slate-50 dark:bg-gray-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 focus:scale-[1.01] transition-all dark:text-white placeholder-slate-400 resize-none custom-scrollbar"></textarea>
-              </div>
-              <button type="submit" id="submit-btn" class="w-full mt-4 font-semibold py-3.5 rounded-xl transition-all duration-300 shadow-md bg-slate-900 text-white hover:bg-brand hover:-translate-y-1 hover:shadow-lg dark:bg-white dark:text-gray-900 dark:hover:bg-brand dark:hover:text-white flex items-center justify-center gap-2 active:scale-95">
-                <i class="ph-bold ph-check-circle transition-transform group-hover:scale-110"></i> Save Session
-              </button>
-            </form>
-          </section>
         </div>
 
-        <!-- Right Side: Visualization & Timeline -->
-        <div class="lg:col-span-8 space-y-6 w-full min-w-0">
-          
-          <section class="p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm w-full min-w-0 hover:shadow-lg transition-shadow duration-300">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <h2 class="text-xl sm:text-2xl font-bold font-display flex items-center gap-2 group cursor-default">
-                <i class="ph-fill ph-squares-four text-brand group-hover:rotate-180 transition-transform duration-700"></i> Activity Matrix
-              </h2>
-              <div class="flex items-center gap-3 bg-slate-50 dark:bg-gray-950 p-1.5 rounded-xl border border-slate-200 dark:border-gray-800 shrink-0 focus-within:ring-2 focus-within:ring-brand/20 transition-all hover:border-brand/30">
-                <i class="ph-bold ph-funnel text-slate-400 pl-2"></i>
-                <select id="filter-subject" class="text-xs sm:text-sm font-semibold px-1 sm:px-2 py-1.5 rounded-lg bg-white dark:bg-gray-800 border-none shadow-sm outline-none w-32 sm:w-48 text-slate-700 dark:text-gray-200 cursor-pointer">
+        <!-- Right Column (8 cols): Activity Matrix + Dual Analytics + Searchable Timeline -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- 1. Contribution Heatmap Card -->
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-lg font-bold font-display">Consistency Matrix</h2>
+                  <span id="heatmap-title-sub" class="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-accent-500/10 text-accent-500">All Subjects</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Click any square to inspect sessions logged on that date
+                </p>
+              </div>
+
+              <!-- Matrix Controls: Metric Toggle & Subject Filter -->
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="inline-flex rounded-xl p-1 bg-slate-100 dark:bg-[#0b0f17] border border-slate-200/60 dark:border-slate-800 text-xs font-medium">
+                  <button type="button" id="metric-mins-btn" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition-all">Minutes</button>
+                  <button type="button" id="metric-count-btn" class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">Sessions</button>
+                </div>
+
+                <select id="filter-subject" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-800 dark:text-slate-200 outline-none focus:border-accent-500 cursor-pointer">
                   <option value="ALL">All Subjects</option>
                 </select>
               </div>
             </div>
 
-            <!-- Heatmap -->
-            <div class="mb-10 relative w-full overflow-hidden">
-              <h3 class="text-sm font-bold mb-4 flex items-center gap-2 text-slate-700 dark:text-gray-300">
-                Contribution Graph 
-                <span id="heatmap-title-sub" class="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md bg-brand/10 text-brand font-bold transition-all">All</span>
-              </h3>
-              
-              <div class="custom-scrollbar pb-3 relative w-full" id="heatmap-scroll-area">
-                <div class="flex gap-2 sm:gap-3">
-                  <div class="flex flex-col justify-between text-[10px] sm:text-[11px] font-medium py-1 text-slate-400 dark:text-gray-500 shrink-0" style="height: 119px;">
-                    <span>Mon</span><span>Wed</span><span>Fri</span><span>Sun</span>
+            <!-- Heatmap Scroll Container -->
+            <div class="custom-scrollbar pb-2 overflow-x-auto" id="heatmap-scroll-area">
+              <div class="inline-block min-w-full">
+                <div class="flex gap-2">
+                  <div class="w-7 shrink-0"></div>
+                  <div id="heatmap-months" class="heatmap-months text-[10px] font-mono text-slate-400"></div>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <div class="flex flex-col justify-between text-[10px] font-mono text-slate-400 shrink-0 w-7" style="height: 115px;">
+                    <span>Mon</span>
+                    <span>Wed</span>
+                    <span>Fri</span>
+                    <span>Sun</span>
                   </div>
-                  <div id="heatmap" class="heatmap-grid pb-1"></div>
+                  <div id="heatmap" class="heatmap-grid py-0.5"></div>
                 </div>
               </div>
             </div>
 
-            <hr class="border-slate-200 dark:border-gray-800 mb-8" />
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <!-- Time Analytics Chart -->
-              <div>
-                <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                  <i class="ph-bold ph-chart-pie-slice"></i> Time by Subject
-                </h3>
-                <div class="relative w-full flex justify-center bg-slate-50 dark:bg-gray-950/50 rounded-2xl p-4 border border-slate-100 dark:border-gray-800 h-[240px]">
-                  <canvas id="timeChart"></canvas>
-                </div>
+            <!-- Legend & Selected Date Filter Indicator -->
+            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+              <div id="active-date-filter-pill" class="hidden items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-mono text-xs">
+                <i class="ph-bold ph-calendar-check"></i>
+                <span id="active-date-filter-text">Filtered by Date</span>
+                <button type="button" id="clear-date-filter-btn" class="hover:text-rose-500 font-bold ml-1">✕</button>
               </div>
+              <div class="flex items-center gap-1.5 ml-auto font-mono text-[11px]">
+                <span>Less</span>
+                <span class="day-cell l0 inline-block"></span>
+                <span class="day-cell l1 inline-block"></span>
+                <span class="day-cell l2 inline-block"></span>
+                <span class="day-cell l3 inline-block"></span>
+                <span class="day-cell l4 inline-block"></span>
+                <span>More</span>
+              </div>
+            </div>
+          </section>
 
-              <!-- Timeline -->
-              <div class="flex flex-col">
-                <h3 class="text-sm font-bold mb-4 text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                  <i class="ph-bold ph-clock-counter-clockwise"></i> Recent Timeline
+          <!-- 2. Dual Analytics Section: Subject Distribution + 14-Day Velocity -->
+          <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Subject Time Breakdown -->
+            <div class="p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold font-display flex items-center gap-2">
+                  <i class="ph-fill ph-chart-donut text-accent-500 text-base"></i> Subject Allocation
                 </h3>
-                <div id="logs-container" class="space-y-3 flex-1 h-[240px] overflow-y-auto pr-2 custom-scrollbar pb-2">
-                  <p class="text-sm italic text-slate-400 dark:text-gray-500 animate-pulse">Loading timeline…</p>
-                </div>
+                <span class="text-[11px] font-mono text-slate-400">By Minutes</span>
+              </div>
+              <div class="relative h-[210px] w-full flex items-center justify-center">
+                <canvas id="timeChart"></canvas>
+              </div>
+            </div>
+
+            <!-- 14-Day Study Momentum -->
+            <div class="p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold font-display flex items-center gap-2">
+                  <i class="ph-fill ph-chart-bar text-emerald-500 text-base"></i> 14-Day Study Velocity
+                </h3>
+                <span class="text-[11px] font-mono text-slate-400">Daily Mins</span>
+              </div>
+              <div class="relative h-[210px] w-full flex items-center justify-center">
+                <canvas id="velocityChart"></canvas>
               </div>
             </div>
 
           </section>
 
+          <!-- 3. Knowledge Timeline & Search -->
+          <section class="p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold font-display">Session Ledger</h2>
+                <span id="logs-count-pill" class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">0 entries</span>
+              </div>
+
+              <!-- Search Input -->
+              <div class="relative w-full sm:w-72">
+                <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="search-logs-input" placeholder="Search topics, notes, or tags..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+              </div>
+            </div>
+
+            <div id="logs-container" class="space-y-3 max-h-[540px] overflow-y-auto pr-1 custom-scrollbar">
+              <div class="p-10 text-center text-sm text-slate-400 animate-pulse">
+                Loading your study ledger...
+              </div>
+            </div>
+          </section>
+
         </div>
+
       </div>
+    </main>
+
+    <!-- Floating Heatmap Tooltip -->
+    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-3 py-1.5 rounded-lg text-xs font-mono shadow-xl border border-slate-700 dark:border-slate-200"></div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast-notification fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl text-sm font-semibold">
+      <i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i>
+      <span id="toast-msg">Action completed</span>
     </div>
 
-    <!-- Tooltip & Toasts -->
-    <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-gray-900 px-3 py-2 rounded-lg text-xs font-medium shadow-xl border border-slate-700 dark:border-gray-200"></div>
-
-    <div id="toast" class="toast fixed bottom-6 right-6 left-6 sm:left-auto text-white font-medium px-6 py-4 rounded-2xl shadow-2xl z-50 text-sm flex items-center gap-3 bg-slate-900 dark:bg-white dark:text-gray-900">
-      <div class="w-6 h-6 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center">
-        <i class="ph-bold ph-check text-green-500"></i>
-      </div>
-      <span id="toast-msg">Saved successfully</span>
-    </div>
-
-    <style>
-      @keyframes shimmer { 100% { transform: translateX(100%); } }
-    </style>
-
+    <!-- Firebase & Application Logic -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
       import {
         getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, updateDoc,
       } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+      // Preserved exact Firebase configuration for seamless database continuity
       const firebaseConfig = {
         apiKey: "AIzaSyB3ZLk2sK28LY0OP727Kpxu0xsCrfZksYs",
         authDomain: "learning-tracker-9a1e1.firebaseapp.com",
@@ -336,165 +643,354 @@
       const logsCol = collection(db, "logs");
       const subsCol = collection(db, "subjects");
 
+      // DOM Elements
+      const statusBadge = document.getElementById("status-badge");
+      const statusDot = document.getElementById("status-dot");
       const statusText = document.getElementById("status-text");
-      const spinner = document.getElementById("loading-spinner");
       const dateInput = document.getElementById("log-date");
       const logSubjectSelect = document.getElementById("log-subject");
       const filterSubjectSelect = document.getElementById("filter-subject");
       const logsContainer = document.getElementById("logs-container");
-      
-      dateInput.valueAsDate = new Date();
+      const searchInput = document.getElementById("search-logs-input");
 
+      // State
       let allLogs = [];
       let allSubjects = [];
-      let tooltipTimeout;
+      let heatmapMetric = "minutes"; // "minutes" | "sessions"
+      let selectedDateKey = null;    // YYYY-MM-DD or null
       let timeChartInstance = null;
-      let weeklyGoalMins = parseInt(localStorage.getItem('weeklyGoalMins')) || 300;
+      let velocityChartInstance = null;
+      let tooltipTimeout = null;
+      let weeklyGoalMins = parseInt(localStorage.getItem("weeklyGoalMins")) || 300;
 
-      // Ensure Marked options are safe (DOMPurify will handle HTML sanitization)
+      // Set today's date in local timezone
+      function setTodayDateInput() {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, "0");
+        const dd = String(now.getDate()).padStart(2, "0");
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+      setTodayDateInput();
+
       marked.setOptions({ breaks: true, gfm: true });
 
-      const themeToggle = document.getElementById('theme-toggle');
-      const moonIcon = document.getElementById('moon-icon');
-      const sunIcon = document.getElementById('sun-icon');
+      // Theme Management
       const htmlEl = document.documentElement;
-      
-      function updateThemeIcon() {
-        if (htmlEl.classList.contains('dark')) {
-          sunIcon.classList.add('hidden');
-          moonIcon.classList.remove('hidden');
-        } else {
-          moonIcon.classList.add('hidden');
-          sunIcon.classList.remove('hidden');
-        }
+      const themeToggle = document.getElementById("theme-toggle");
+      const moonIcon = document.getElementById("moon-icon");
+      const sunIcon = document.getElementById("sun-icon");
+
+      function syncThemeUI() {
+        const isDark = htmlEl.classList.contains("dark");
+        moonIcon.classList.toggle("hidden", !isDark);
+        sunIcon.classList.toggle("hidden", isDark);
       }
 
-      if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        htmlEl.classList.add('dark');
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        htmlEl.classList.remove("dark");
+      } else if (savedTheme === "dark" || window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        htmlEl.classList.add("dark");
       }
-      updateThemeIcon();
+      syncThemeUI();
 
-      themeToggle.addEventListener('click', () => {
-        htmlEl.classList.toggle('dark');
-        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
-        updateThemeIcon();
-        if(allLogs.length) applyFilter(); // Re-render chart text colors
+      themeToggle.addEventListener("click", () => {
+        htmlEl.classList.toggle("dark");
+        localStorage.setItem("theme", htmlEl.classList.contains("dark") ? "dark" : "light");
+        syncThemeUI();
+        applyFilter();
       });
 
-      // Weekly Goal Edit
-      document.getElementById('edit-goal-btn').addEventListener('click', () => {
-        const newGoal = prompt("Enter your weekly goal in minutes:", weeklyGoalMins);
-        if(newGoal && !isNaN(newGoal) && parseInt(newGoal) > 0) {
-            weeklyGoalMins = parseInt(newGoal);
-            localStorage.setItem('weeklyGoalMins', weeklyGoalMins);
-            document.getElementById('goal-target-text').textContent = weeklyGoalMins;
-            applyFilter(); 
-        }
-      });
-      document.getElementById('goal-target-text').textContent = weeklyGoalMins;
-
+      // Toast Helper
       function showToast(msg) {
-        const t = document.getElementById("toast");
+        const toast = document.getElementById("toast");
         document.getElementById("toast-msg").textContent = msg;
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2500);
-      }
-      
-      function dayKey(d) { 
-        const dt = new Date(d);
-        return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2600);
       }
 
-      // Looks up a matching icon for a subject name using the free Iconify
-      // search API (covers CS/dev/AI/framework brand + concept icons) and
-      // returns a ready-to-use SVG URL, or null if nothing was found.
+      // Date Formatting Key (YYYY-MM-DD)
+      function dayKey(d) {
+        const dt = new Date(d);
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      }
+
+      // ==========================================
+      // FOCUS TIMER ENGINE (Pomodoro + Stopwatch)
+      // ==========================================
+      let timerModeMins = 25; // 0 = Stopwatch
+      let timerSeconds = 25 * 60;
+      let timerElapsedSecs = 0;
+      let timerInterval = null;
+      let timerRunning = false;
+
+      const timerDisplay = document.getElementById("timer-display");
+      const timerSubstatus = document.getElementById("timer-substatus");
+      const timerPlayIcon = document.getElementById("timer-play-icon");
+
+      function playChime() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.12, ctx.currentTime + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.4);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + idx * 0.12);
+            osc.stop(ctx.currentTime + idx * 0.12 + 0.4);
+          });
+        } catch (_) {}
+      }
+
+      function formatTimer(secs) {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      function updateTimerView() {
+        timerDisplay.textContent = formatTimer(timerSeconds);
+        const elapsedMins = Math.max(1, Math.round(timerElapsedSecs / 60));
+        timerSubstatus.textContent = timerRunning
+          ? `Focusing... (${elapsedMins}m elapsed)`
+          : timerElapsedSecs > 0
+          ? `Paused • ${elapsedMins}m ready to log`
+          : timerModeMins === 0
+          ? "Stopwatch mode"
+          : `${timerModeMins}m Pomodoro preset`;
+      }
+
+      document.querySelectorAll(".timer-preset").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          timerPlayIcon.className = "ph-fill ph-play text-lg";
+          timerModeMins = parseInt(btn.dataset.timerMode, 10);
+          timerSeconds = timerModeMins * 60;
+          timerElapsedSecs = 0;
+
+          document.querySelectorAll(".timer-preset").forEach((b) => {
+            b.className = "timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white";
+          });
+          btn.className = "timer-preset px-2 py-0.5 rounded bg-white dark:bg-slate-900 text-accent-500 shadow-sm";
+          updateTimerView();
+        });
+      });
+
+      document.getElementById("timer-start-btn").addEventListener("click", () => {
+        if (timerRunning) {
+          clearInterval(timerInterval);
+          timerRunning = false;
+          timerPlayIcon.className = "ph-fill ph-play text-lg";
+          updateTimerView();
+          return;
+        }
+        timerRunning = true;
+        timerPlayIcon.className = "ph-fill ph-pause text-lg";
+        timerInterval = setInterval(() => {
+          timerElapsedSecs++;
+          if (timerModeMins === 0) {
+            timerSeconds++;
+          } else {
+            if (timerSeconds > 0) {
+              timerSeconds--;
+            } else {
+              clearInterval(timerInterval);
+              timerRunning = false;
+              timerPlayIcon.className = "ph-fill ph-play text-lg";
+              playChime();
+              document.getElementById("log-minutes").value = timerModeMins;
+              showToast(`Focus session complete! ${timerModeMins} mins transferred.`);
+            }
+          }
+          updateTimerView();
+        }, 1000);
+      });
+
+      document.getElementById("timer-reset-btn").addEventListener("click", () => {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        timerPlayIcon.className = "ph-fill ph-play text-lg";
+        timerSeconds = timerModeMins * 60;
+        timerElapsedSecs = 0;
+        updateTimerView();
+      });
+
+      document.getElementById("timer-apply-btn").addEventListener("click", () => {
+        const mins = Math.max(1, Math.round(timerElapsedSecs / 60));
+        document.getElementById("log-minutes").value = mins;
+        document.getElementById("log-topic").focus();
+        showToast(`Transferred ${mins} min${mins > 1 ? "s" : ""} to logger`);
+      });
+
+      // Quick Minute Increment Buttons
+      document.querySelectorAll(".quick-min-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const input = document.getElementById("log-minutes");
+          const addVal = parseInt(btn.dataset.quickMin, 10);
+          input.value = addVal;
+        });
+      });
+
+      // ==========================================
+      // WEEKLY GOAL SETTING
+      // ==========================================
+      document.getElementById("goal-target-text").textContent = weeklyGoalMins;
+      document.getElementById("edit-goal-btn").addEventListener("click", () => {
+        const val = prompt("Set weekly study target (in minutes):", weeklyGoalMins);
+        if (val && !isNaN(val) && parseInt(val, 10) > 0) {
+          weeklyGoalMins = parseInt(val, 10);
+          localStorage.setItem("weeklyGoalMins", weeklyGoalMins);
+          document.getElementById("goal-target-text").textContent = weeklyGoalMins;
+          applyFilter();
+          showToast(`Weekly target set to ${weeklyGoalMins} mins`);
+        }
+      });
+
+      // ==========================================
+      // SUBJECTS MANAGEMENT & ICONIFY LOOKUP
+      // ==========================================
       async function fetchIconForSubject(name) {
         try {
           const res = await fetch(`https://api.iconify.design/search?query=${encodeURIComponent(name)}&limit=1`);
           if (!res.ok) return null;
           const data = await res.json();
           if (data && data.icons && data.icons.length > 0) {
-            const [prefix, iconName] = data.icons[0].split(':');
+            const [prefix, iconName] = data.icons[0].split(":");
             if (prefix && iconName) return `https://api.iconify.design/${prefix}/${iconName}.svg`;
           }
-        } catch (err) {
-          console.warn("Icon lookup failed", err);
-        }
+        } catch (_) {}
         return null;
       }
 
       async function loadSubjects() {
         const snap = await getDocs(query(subsCol, orderBy("name", "asc")));
         allSubjects = [];
-        snap.forEach(d => allSubjects.push({ id: d.id, ...d.data() }));
+        snap.forEach((d) => allSubjects.push({ id: d.id, ...d.data() }));
         renderSubjectUI();
       }
 
-      function subjectChipHTML(s, completed) {
+      function renderSubjectChip(s, completed) {
         const iconHTML = s.iconUrl
-          ? `<img src="${s.iconUrl}" alt="" class="w-3.5 h-3.5 shrink-0" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph ph-hash text-brand'}))" />`
-          : `<i class="ph ph-hash text-brand"></i>`;
-        const wrapClasses = completed
-          ? "px-3 py-1.5 rounded-lg border border-brand/30 bg-brand/5 dark:bg-brand/10 font-semibold text-slate-500 dark:text-gray-400 shadow-sm flex items-center gap-1.5 transition-all line-through decoration-brand/50"
-          : "px-3 py-1.5 rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-300 shadow-sm flex items-center gap-1.5 hover:scale-105 hover:bg-slate-200 dark:hover:bg-gray-700 transition-all";
-        const btnTitle = completed ? "Mark as active" : "Mark as complete";
-        const btnIcon = completed ? "ph-arrow-counter-clockwise" : "ph-check-circle";
-        return `<span class="${wrapClasses}">
-            ${iconHTML}<span class="${completed ? '' : ''}">${s.name}</span>
-            <button type="button" data-subject-id="${s.id}" data-completed="${completed}" title="${btnTitle}" class="ml-1 -mr-1 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-brand hover:bg-white dark:hover:bg-gray-900 transition-colors shrink-0">
-              <i class="ph-bold ${btnIcon} text-sm"></i>
+          ? `<img src="${s.iconUrl}" alt="" class="w-3.5 h-3.5 shrink-0" onerror="this.style.display='none'" />`
+          : `<i class="ph-bold ph-hash text-accent-500"></i>`;
+
+        const baseCls = completed
+          ? "px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 flex items-center gap-1.5 line-through"
+          : "px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 font-semibold flex items-center gap-1.5 hover:border-accent-500/40 transition-all";
+
+        return `
+          <div class="${baseCls}">
+            ${iconHTML}
+            <span>${s.name}</span>
+            <button type="button" data-toggle-sub="${s.id}" data-completed="${completed}" title="${completed ? "Restore subject" : "Mark completed"}" class="ml-1 text-slate-400 hover:text-emerald-500 transition-colors">
+              <i class="ph-bold ${completed ? "ph-arrow-counter-clockwise" : "ph-check-circle"}"></i>
             </button>
-          </span>`;
+            <button type="button" data-delete-sub="${s.id}" data-name="${s.name}" title="Delete subject" class="text-slate-400 hover:text-rose-500 transition-colors">
+              <i class="ph-bold ph-x"></i>
+            </button>
+          </div>
+        `;
       }
 
       function renderSubjectUI() {
-        const activeSubjects = allSubjects.filter(s => !s.completed);
-        const completedSubjects = allSubjects.filter(s => s.completed);
+        const active = allSubjects.filter((s) => !s.completed);
+        const completed = allSubjects.filter((s) => s.completed);
 
-        const list = document.getElementById("subject-list");
-        list.innerHTML = activeSubjects.length
-          ? activeSubjects.map(s => subjectChipHTML(s, false)).join('')
-          : `<span class="text-xs italic text-slate-400 dark:text-gray-500">No active subjects yet.</span>`;
+        document.getElementById("subject-count-badge").textContent = `${active.length} active`;
 
-        const completedSection = document.getElementById("completed-subjects-section");
-        const completedList = document.getElementById("completed-subject-list");
-        if (completedSubjects.length) {
-          completedSection.classList.remove("hidden");
-          completedList.innerHTML = completedSubjects.map(s => subjectChipHTML(s, true)).join('');
+        const listEl = document.getElementById("subject-list");
+        listEl.innerHTML = active.length
+          ? active.map((s) => renderSubjectChip(s, false)).join("")
+          : `<span class="text-xs italic text-slate-400">No active tracks. Add one above!</span>`;
+
+        const compSec = document.getElementById("completed-subjects-section");
+        const compList = document.getElementById("completed-subject-list");
+        if (completed.length) {
+          compSec.classList.remove("hidden");
+          compList.innerHTML = completed.map((s) => renderSubjectChip(s, true)).join("");
         } else {
-          completedSection.classList.add("hidden");
-          completedList.innerHTML = "";
+          compSec.classList.add("hidden");
+          compList.innerHTML = "";
         }
 
-        // Toggle complete/active on click
-        document.querySelectorAll("[data-subject-id]").forEach(btn => {
+        // Toggle Complete / Active
+        document.querySelectorAll("[data-toggle-sub]").forEach((btn) => {
           btn.addEventListener("click", async () => {
-            const id = btn.dataset.subjectId;
-            const nowCompleted = btn.dataset.completed !== "true";
+            const id = btn.dataset.toggleSub;
+            const nextState = btn.dataset.completed !== "true";
             try {
-              await updateDoc(doc(db, "subjects", id), { completed: nowCompleted });
-              showToast(nowCompleted ? "Subject marked complete" : "Subject marked active");
+              await updateDoc(doc(db, "subjects", id), { completed: nextState });
+              showToast(nextState ? "Track archived as complete" : "Track restored to active");
               loadSubjects();
-            } catch (err) {
-              console.error(err);
-              showToast("Couldn't update subject");
+            } catch (e) {
+              showToast("Error updating subject");
             }
           });
         });
 
-        // Log form only offers active (not-yet-completed) subjects
-        const logOpts = `<option value="" disabled selected>Select a subject...</option>` + 
-                        activeSubjects.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-        logSubjectSelect.innerHTML = logOpts;
+        // Delete Subject
+        document.querySelectorAll("[data-delete-sub]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.dataset.deleteSub;
+            const name = btn.dataset.name;
+            if (!confirm(`Remove "${name}" from your subject list? (Existing session logs for ${name} will remain intact)`)) return;
+            try {
+              await deleteDoc(doc(db, "subjects", id));
+              showToast(`Removed "${name}"`);
+              loadSubjects();
+            } catch (e) {
+              showToast("Could not delete subject");
+            }
+          });
+        });
 
-        // Filter dropdown keeps all subjects so history stays visible after completion
-        const currentFilter = filterSubjectSelect.value;
-        const filterOpts = `<option value="ALL">All Subjects</option>` + 
-                           allSubjects.map(s => `<option value="${s.name}">${s.name}${s.completed ? ' ✓' : ''}</option>`).join('');
-        filterSubjectSelect.innerHTML = filterOpts;
-        filterSubjectSelect.value = currentFilter || "ALL";
+        // Populate Selects
+        const prevSub = logSubjectSelect.value;
+        logSubjectSelect.innerHTML =
+          `<option value="" disabled selected>Select subject...</option>` +
+          active.map((s) => `<option value="${s.name}">${s.name}</option>`).join("");
+        if (prevSub && active.some((s) => s.name === prevSub)) {
+          logSubjectSelect.value = prevSub;
+        }
+
+        const prevFilter = filterSubjectSelect.value;
+        filterSubjectSelect.innerHTML =
+          `<option value="ALL">All Subjects</option>` +
+          allSubjects.map((s) => `<option value="${s.name}">${s.name}${s.completed ? " ✓" : ""}</option>`).join("");
+        filterSubjectSelect.value = prevFilter || "ALL";
       }
 
+      document.getElementById("subject-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const input = document.getElementById("new-subject");
+        const name = input.value.trim();
+        if (!name) return;
+
+        try {
+          const ref = await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
+          input.value = "";
+          showToast(`Added "${name}"`);
+          await loadSubjects();
+
+          fetchIconForSubject(name).then((iconUrl) => {
+            if (iconUrl) {
+              updateDoc(doc(db, "subjects", ref.id), { iconUrl }).then(loadSubjects);
+            }
+          });
+        } catch (err) {
+          showToast("Failed to add subject");
+        }
+      });
+
+      // ==========================================
+      // LOGS FETCHING & FILTERING PIPELINE
+      // ==========================================
       async function loadLogs() {
         try {
           const q = query(logsCol, orderBy("timestamp", "desc"));
@@ -503,299 +999,631 @@
           snap.forEach((d) => allLogs.push({ id: d.id, ...d.data() }));
 
           applyFilter();
-          spinner.style.display = "none";
-          statusText.textContent = "Synced";
+          statusDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500";
+          statusBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20";
+          statusText.textContent = "Live Synced";
         } catch (err) {
           console.error(err);
-          statusText.textContent = "Connection error";
+          statusDot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
+          statusText.textContent = "Offline / Error";
         }
       }
 
       function applyFilter() {
-        const filterVal = filterSubjectSelect.value;
-        document.getElementById("heatmap-title-sub").textContent = filterVal === "ALL" ? "All Subjects" : filterVal;
-        
-        const filteredLogs = filterVal === "ALL" ? allLogs : allLogs.filter(l => l.subject === filterVal);
-        
-        const counts = computeStats(filteredLogs);
-        renderHeatmap(counts);
-        renderChart(filteredLogs);
-        renderLogs(filteredLogs);
+        const subjectFilter = filterSubjectSelect.value;
+        const searchQuery = searchInput.value.trim().toLowerCase();
+
+        document.getElementById("heatmap-title-sub").textContent =
+          subjectFilter === "ALL" ? "All Subjects" : subjectFilter;
+
+        // Filter by Subject first (for KPIs, Heatmap, Charts)
+        const subjectFilteredLogs =
+          subjectFilter === "ALL"
+            ? allLogs
+            : allLogs.filter((l) => l.subject === subjectFilter);
+
+        const dayMap = computeStats(subjectFilteredLogs);
+        renderHeatmap(dayMap);
+        renderCharts(subjectFilteredLogs);
+
+        // Additional Timeline Filters (Selected Date on Heatmap + Search Query)
+        let timelineLogs = subjectFilteredLogs;
+        if (selectedDateKey) {
+          timelineLogs = timelineLogs.filter((l) => dayKey(l.timestamp) === selectedDateKey);
+        }
+        if (searchQuery) {
+          timelineLogs = timelineLogs.filter(
+            (l) =>
+              (l.topic && l.topic.toLowerCase().includes(searchQuery)) ||
+              (l.notes && l.notes.toLowerCase().includes(searchQuery)) ||
+              (l.subject && l.subject.toLowerCase().includes(searchQuery)) ||
+              (l.tag && l.tag.toLowerCase().includes(searchQuery))
+          );
+        }
+
+        renderLogs(timelineLogs);
       }
 
+      // ==========================================
+      // TELEMETRY & KPI COMPUTATION
+      // ==========================================
       function computeStats(logs) {
-        const counts = {};
-        let weekTotalMins = 0;
-        const weekAgo = new Date();
+        const dayMap = {}; // { 'YYYY-MM-DD': { sessions: 0, minutes: 0 } }
+        let totalMins = 0;
+        let weekMins = 0;
+        let weekSessions = 0;
+
+        const now = new Date();
+        const weekAgo = new Date(now);
         weekAgo.setDate(weekAgo.getDate() - 7);
 
-        logs.forEach((l) => { 
-          const k = dayKey(l.timestamp); 
-          counts[k] = (counts[k] || 0) + 1; 
-          if(new Date(l.timestamp) >= weekAgo) {
-            weekTotalMins += (l.minutes || 0);
+        logs.forEach((l) => {
+          const k = dayKey(l.timestamp);
+          const mins = Number(l.minutes) || 0;
+          if (!dayMap[k]) dayMap[k] = { sessions: 0, minutes: 0 };
+          dayMap[k].sessions += 1;
+          dayMap[k].minutes += mins;
+          totalMins += mins;
+
+          if (new Date(l.timestamp) >= weekAgo) {
+            weekMins += mins;
+            weekSessions += 1;
           }
         });
-        
+
+        // Current Streak
         let streak = 0;
-        let cursor = new Date();
+        const cursor = new Date();
         cursor.setHours(12, 0, 0, 0);
-        if (!counts[dayKey(cursor)]) cursor.setDate(cursor.getDate() - 1);
-        while (counts[dayKey(cursor)]) {
+        if (!dayMap[dayKey(cursor)]) cursor.setDate(cursor.getDate() - 1);
+        while (dayMap[dayKey(cursor)]) {
           streak++;
           cursor.setDate(cursor.getDate() - 1);
         }
 
-        const weekCount = logs.filter((l) => new Date(l.timestamp) >= weekAgo).length;
+        // Best Historical Streak
+        const sortedDays = Object.keys(dayMap).sort();
+        let bestStreak = 0;
+        let currentRun = 0;
+        let prevDate = null;
+        sortedDays.forEach((dStr) => {
+          const [y, m, d] = dStr.split("-").map(Number);
+          const curDate = new Date(y, m - 1, d, 12, 0, 0);
+          if (prevDate) {
+            const diffDays = Math.round((curDate - prevDate) / (1000 * 60 * 60 * 24));
+            currentRun = diffDays === 1 ? currentRun + 1 : 1;
+          } else {
+            currentRun = 1;
+          }
+          if (currentRun > bestStreak) bestStreak = currentRun;
+          prevDate = curDate;
+        });
+
+        const totalHours = (totalMins / 60).toFixed(1);
+        const avgMins = logs.length ? Math.round(totalMins / logs.length) : 0;
 
         document.getElementById("stat-streak").textContent = streak;
-        document.getElementById("stat-week").textContent = weekCount;
+        document.getElementById("stat-best-streak").textContent = `Best: ${bestStreak}d`;
+        document.getElementById("stat-hours").textContent = totalHours;
+        document.getElementById("stat-mins-sub").textContent = `${totalMins.toLocaleString()} total mins`;
+        document.getElementById("stat-week-mins").textContent = weekMins;
+        document.getElementById("stat-week-sessions").textContent = `${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`;
         document.getElementById("stat-total").textContent = logs.length;
-        document.getElementById("stat-days").textContent = Object.keys(counts).length;
+        document.getElementById("stat-avg-session").textContent = `Avg: ${avgMins}m / session`;
+        document.getElementById("stat-days").textContent = sortedDays.length;
 
-        // Update Weekly Goal Progress
-        const goalPercent = Math.min(Math.round((weekTotalMins / weeklyGoalMins) * 100), 100);
-        document.getElementById('goal-current-text').textContent = `${weekTotalMins} mins`;
-        document.getElementById('goal-percent-text').textContent = `${goalPercent}%`;
-        document.getElementById('goal-progress-bar').style.width = `${goalPercent}%`;
-        
-        // Dynamic color for goal completion
-        if(goalPercent >= 100) {
-           document.getElementById('goal-progress-bar').classList.remove('bg-brand');
-           document.getElementById('goal-progress-bar').classList.add('bg-blue-500');
-        } else {
-           document.getElementById('goal-progress-bar').classList.add('bg-brand');
-           document.getElementById('goal-progress-bar').classList.remove('bg-blue-500');
-        }
+        // Weekly Target Bar
+        const pct = Math.min(Math.round((weekMins / weeklyGoalMins) * 100), 100);
+        document.getElementById("goal-current-text").textContent = weekMins;
+        document.getElementById("goal-percent-text").textContent = `${pct}%`;
+        document.getElementById("goal-progress-bar").style.width = `${pct}%`;
+        document.getElementById("goal-status-label").textContent =
+          pct >= 100 ? "Target Reached! 🎯" : `${Math.max(0, weeklyGoalMins - weekMins)}m remaining`;
 
-        return counts;
+        return dayMap;
       }
 
-      function renderChart(logs) {
-        const ctx = document.getElementById('timeChart').getContext('2d');
-        const subjectMins = {};
-        logs.forEach(l => {
-            if(l.minutes) subjectMins[l.subject] = (subjectMins[l.subject] || 0) + l.minutes;
-        });
-
-        const labels = Object.keys(subjectMins);
-        const data = Object.values(subjectMins);
-
-        if(timeChartInstance) { timeChartInstance.destroy(); }
-
-        if(data.length === 0) {
-            // Render placeholder if empty
-            const isDark = document.documentElement.classList.contains('dark');
-            timeChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: [isDark ? '#374151' : '#e2e8f0'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: false }, legend: { display: false } } }
-            });
-            return;
+      // ==========================================
+      // INTERACTIVE CONTRIBUTION HEATMAP
+      // ==========================================
+      function getIntensityLevel(entry) {
+        if (!entry) return 0;
+        if (heatmapMetric === "sessions") {
+          return Math.min(entry.sessions, 4);
         }
-
-        const isDark = document.documentElement.classList.contains('dark');
-        const textColor = isDark ? '#9ca3af' : '#475569';
-        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f43f5e'];
-
-        timeChartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: isDark ? 2 : 2,
-                    borderColor: isDark ? '#030712' : '#ffffff' // matches dark:bg-gray-950 and bg-white
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '65%',
-                plugins: {
-                    legend: { position: 'right', labels: { color: textColor, font: { family: 'Inter', size: 11 }, usePointStyle: true, boxWidth: 8 } },
-                    tooltip: { callbacks: { label: function(context) { return ` ${context.raw} mins`; } } }
-                }
-            }
-        });
+        const m = entry.minutes;
+        if (m <= 0) return 0;
+        if (m < 30) return 1;
+        if (m < 60) return 2;
+        if (m < 120) return 3;
+        return 4;
       }
 
-      function renderHeatmap(counts) {
+      function renderHeatmap(dayMap) {
         const grid = document.getElementById("heatmap");
+        const monthsRow = document.getElementById("heatmap-months");
         grid.innerHTML = "";
+        monthsRow.innerHTML = "";
+
         const tooltip = document.getElementById("tooltip");
         const scrollArea = document.getElementById("heatmap-scroll-area");
-        
+
         const today = new Date();
-        today.setHours(12, 0, 0, 0); 
-        
+        today.setHours(12, 0, 0, 0);
+
         const start = new Date(today);
         start.setDate(start.getDate() - 364);
-        
+
         let offset = start.getDay() - 1;
-        if (offset === -1) offset = 6; 
-        
+        if (offset === -1) offset = 6;
+
         for (let i = 0; i < offset; i++) {
           const spacer = document.createElement("div");
-          spacer.style.width = "13px"; spacer.style.height = "13px";
+          spacer.style.width = "13px";
+          spacer.style.height = "13px";
           grid.appendChild(spacer);
         }
 
-        for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
-          const key = dayKey(d);
-          const count = counts[key] || 0;
-          const cell = document.createElement("div");
-          cell.className = `day-cell l${Math.min(count, 4)}`; 
-          cell.dataset.count = count;
-          
-          const cellDate = new Date(d); 
+        let cellIndex = offset;
+        let lastMonth = -1;
+        const totalCols = Math.ceil((365 + offset) / 7);
+        const colMonthLabels = new Array(totalCols).fill("");
 
-          const triggerTooltip = (e) => {
+        for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+          const colIdx = Math.floor(cellIndex / 7);
+          const m = d.getMonth();
+          if (m !== lastMonth && d.getDate() <= 7) {
+            colMonthLabels[colIdx] = d.toLocaleDateString(undefined, { month: "short" });
+            lastMonth = m;
+          }
+
+          const key = dayKey(d);
+          const entry = dayMap[key];
+          const level = getIntensityLevel(entry);
+
+          const cell = document.createElement("div");
+          cell.className = `day-cell l${level}${selectedDateKey === key ? " selected-day" : ""}`;
+          if (entry) cell.dataset.active = "true";
+
+          const cellDate = new Date(d);
+          const sessions = entry ? entry.sessions : 0;
+          const mins = entry ? entry.minutes : 0;
+
+          const showTip = (e) => {
             clearTimeout(tooltipTimeout);
             const rect = e.target.getBoundingClientRect();
-            tooltip.innerHTML = `<strong>${count} session${count === 1 ? "" : "s"}</strong> on ${cellDate.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'})}`;
-            tooltip.style.left = (rect.left + window.scrollX + (rect.width / 2)) + "px";
-            tooltip.style.top = (rect.top + window.scrollY - 6) + "px";
+            const dateFormatted = cellDate.toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
+            tooltip.innerHTML = sessions
+              ? `<strong>${mins} mins (${sessions} session${sessions === 1 ? "" : "s"})</strong> • ${dateFormatted}`
+              : `No activity • ${dateFormatted}`;
+            tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
+            tooltip.style.top = `${rect.top + window.scrollY - 6}px`;
             tooltip.classList.add("show");
           };
 
-          const hideTooltip = () => { tooltip.classList.remove("show"); };
+          const hideTip = () => tooltip.classList.remove("show");
 
-          cell.addEventListener("mouseenter", triggerTooltip);
-          cell.addEventListener("mouseleave", hideTooltip);
-          
-          cell.addEventListener("click", (e) => {
-            triggerTooltip(e);
-            tooltipTimeout = setTimeout(hideTooltip, 2000); 
+          cell.addEventListener("mouseenter", showTip);
+          cell.addEventListener("mouseleave", hideTip);
+          cell.addEventListener("click", () => {
+            if (selectedDateKey === key) {
+              selectedDateKey = null;
+            } else {
+              selectedDateKey = key;
+            }
+            updateDateFilterPill();
+            applyFilter();
           });
 
           grid.appendChild(cell);
+          cellIndex++;
         }
-        
-        requestAnimationFrame(() => { scrollArea.scrollLeft = scrollArea.scrollWidth; });
+
+        // Render Month Headers
+        colMonthLabels.forEach((lbl) => {
+          const span = document.createElement("span");
+          span.textContent = lbl;
+          monthsRow.appendChild(span);
+        });
+
+        requestAnimationFrame(() => {
+          scrollArea.scrollLeft = scrollArea.scrollWidth;
+        });
       }
 
+      function updateDateFilterPill() {
+        const pill = document.getElementById("active-date-filter-pill");
+        const text = document.getElementById("active-date-filter-text");
+        if (selectedDateKey) {
+          pill.classList.remove("hidden");
+          pill.classList.add("inline-flex");
+          text.textContent = `Showing: ${selectedDateKey}`;
+        } else {
+          pill.classList.add("hidden");
+          pill.classList.remove("inline-flex");
+        }
+      }
+
+      document.getElementById("clear-date-filter-btn").addEventListener("click", () => {
+        selectedDateKey = null;
+        updateDateFilterPill();
+        applyFilter();
+      });
+
+      // Heatmap Metric Toggle
+      const metricMinsBtn = document.getElementById("metric-mins-btn");
+      const metricCountBtn = document.getElementById("metric-count-btn");
+
+      metricMinsBtn.addEventListener("click", () => {
+        heatmapMetric = "minutes";
+        metricMinsBtn.className = "px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition-all";
+        metricCountBtn.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all";
+        applyFilter();
+      });
+
+      metricCountBtn.addEventListener("click", () => {
+        heatmapMetric = "sessions";
+        metricCountBtn.className = "px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition-all";
+        metricMinsBtn.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all";
+        applyFilter();
+      });
+
+      // ==========================================
+      // DUAL ANALYTICS CHARTS
+      // ==========================================
+      function renderCharts(logs) {
+        const isDark = htmlEl.classList.contains("dark");
+        const textColor = isDark ? "#94a3b8" : "#475569";
+        const gridColor = isDark ? "rgba(148, 163, 184, 0.08)" : "rgba(148, 163, 184, 0.2)";
+
+        // 1. Doughnut Chart: Subject Distribution
+        const ctxPie = document.getElementById("timeChart").getContext("2d");
+        const subjectMins = {};
+        logs.forEach((l) => {
+          const m = Number(l.minutes) || 0;
+          if (m > 0) subjectMins[l.subject] = (subjectMins[l.subject] || 0) + m;
+        });
+
+        const pieLabels = Object.keys(subjectMins);
+        const pieData = Object.values(subjectMins);
+
+        if (timeChartInstance) timeChartInstance.destroy();
+
+        const palette = ["#6366f1", "#10b981", "#0ea5e9", "#f59e0b", "#ec4899", "#8b5cf6", "#14b8a6"];
+
+        if (pieData.length === 0) {
+          timeChartInstance = new Chart(ctxPie, {
+            type: "doughnut",
+            data: {
+              labels: ["No Data"],
+              datasets: [{ data: [1], backgroundColor: [isDark ? "#1e293b" : "#e2e8f0"], borderWidth: 0 }],
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: "70%", plugins: { legend: { display: false }, tooltip: { enabled: false } } },
+          });
+        } else {
+          timeChartInstance = new Chart(ctxPie, {
+            type: "doughnut",
+            data: {
+              labels: pieLabels,
+              datasets: [
+                {
+                  data: pieData,
+                  backgroundColor: palette,
+                  borderWidth: 2,
+                  borderColor: isDark ? "#0f172a" : "#ffffff",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: "68%",
+              plugins: {
+                legend: {
+                  position: "right",
+                  labels: { color: textColor, font: { family: "Plus Jakarta Sans", size: 11 }, usePointStyle: true, boxWidth: 8 },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => ` ${ctx.raw} mins (${(ctx.raw / 60).toFixed(1)} hrs)`,
+                  },
+                },
+              },
+            },
+          });
+        }
+
+        // 2. Bar Chart: 14-Day Study Velocity
+        const ctxBar = document.getElementById("velocityChart").getContext("2d");
+        if (velocityChartInstance) velocityChartInstance.destroy();
+
+        const barLabels = [];
+        const barValues = [];
+        const dailyTotals = {};
+
+        logs.forEach((l) => {
+          const k = dayKey(l.timestamp);
+          dailyTotals[k] = (dailyTotals[k] || 0) + (Number(l.minutes) || 0);
+        });
+
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        for (let i = 13; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(d.getDate() - i);
+          const k = dayKey(d);
+          barLabels.push(d.toLocaleDateString(undefined, { month: "short", day: "numeric" }));
+          barValues.push(dailyTotals[k] || 0);
+        }
+
+        velocityChartInstance = new Chart(ctxBar, {
+          type: "bar",
+          data: {
+            labels: barLabels,
+            datasets: [
+              {
+                label: "Minutes",
+                data: barValues,
+                backgroundColor: "#6366f1",
+                hoverBackgroundColor: "#10b981",
+                borderRadius: 6,
+                maxBarThickness: 18,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: textColor, font: { family: "JetBrains Mono", size: 9 }, maxRotation: 45 },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: textColor, font: { family: "JetBrains Mono", size: 10 } },
+              },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ` ${ctx.raw} mins studied`,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // ==========================================
+      // TIMELINE RENDERING, EDITING & DELETION
+      // ==========================================
       function renderLogs(logs) {
+        document.getElementById("logs-count-pill").textContent = `${logs.length} ${logs.length === 1 ? "entry" : "entries"}`;
+
         if (logs.length === 0) {
-          logsContainer.innerHTML = `<div class="p-8 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200 dark:border-gray-800 rounded-2xl text-slate-500 dark:text-gray-400 font-medium bg-white/50 dark:bg-gray-900/50 animate-fade-in"><i class="ph ph-ghost text-4xl mb-2 text-slate-300 dark:text-gray-600"></i> No sessions found.</div>`;
+          logsContainer.innerHTML = `
+            <div class="p-10 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400">
+              <i class="ph-duotone ph-notebook text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
+              <p class="text-sm font-medium">No matching study sessions found.</p>
+            </div>`;
           return;
         }
 
-        logsContainer.innerHTML = logs.map((log, index) => {
-          const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-          const delay = Math.min(index * 75, 600); 
-          
-          // Parse Markdown and Sanitize
-          const parsedNotes = log.notes ? DOMPurify.sanitize(marked.parse(log.notes)) : null;
+        logsContainer.innerHTML = logs
+          .map((log) => {
+            const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            });
+            const parsedNotes = log.notes ? DOMPurify.sanitize(marked.parse(log.notes)) : null;
+            const tagBadge = log.tag
+              ? `<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${log.tag}</span>`
+              : "";
 
-          return `
-            <div class="group relative p-4 pl-5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-1 animate-slide-in-right overflow-hidden" style="animation-delay: ${delay}ms; opacity: 0; animation-fill-mode: forwards;">
-              <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-brand rounded-l-2xl group-hover:w-2 transition-all duration-300"></div>
-              <div class="flex items-start justify-between gap-4">
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2 mb-1.5">
-                    <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 dark:bg-gray-700 text-slate-700 dark:text-gray-300 px-2 py-0.5 rounded-md flex items-center gap-1 group-hover:bg-brand/10 group-hover:text-brand transition-colors"><i class="ph-bold ph-bookmark-simple"></i>${log.subject}</span>
-                    <span class="text-xs font-semibold text-slate-400 dark:text-gray-500 flex items-center gap-1"><i class="ph-bold ph-calendar-blank"></i>${dateStr}</span>
+            return `
+              <article class="group relative p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/90 bg-slate-50/70 dark:bg-[#0b0f17]/80 hover:border-accent-500/40 transition-all">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                        ${log.subject}
+                      </span>
+                      ${tagBadge}
+                      <span class="text-xs font-mono text-slate-400 flex items-center gap-1">
+                        <i class="ph-bold ph-calendar-blank"></i> ${dateStr}
+                      </span>
+                      ${
+                        log.minutes
+                          ? `<span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                              ⏱ ${log.minutes}m
+                            </span>`
+                          : ""
+                      }
+                    </div>
+
+                    <h4 class="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                      ${log.topic}
+                    </h4>
+
+                    ${
+                      parsedNotes
+                        ? `<div class="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/80 text-xs sm:text-sm text-slate-700 dark:text-slate-300 md-content overflow-x-auto">
+                            ${parsedNotes}
+                          </div>`
+                        : ""
+                    }
                   </div>
-                  <h4 class="text-base font-bold text-slate-800 dark:text-white truncate whitespace-normal">${log.topic}</h4>
-                  ${log.minutes ? `<div class="mt-2 text-xs inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 font-semibold text-slate-600 dark:text-gray-400"><i class="ph-bold ph-hourglass-high text-brand group-hover:animate-spin"></i>${log.minutes} min</div>` : ""}
-                  
-                  ${parsedNotes ? `
-                    <div class="text-sm mt-3 leading-relaxed text-slate-700 dark:text-gray-300 bg-white dark:bg-gray-950 p-3 rounded-xl border border-slate-100 dark:border-gray-800 flex gap-3 shadow-sm md-content overflow-hidden relative">
-                       <i class="ph-fill ph-quotes text-brand/30 dark:text-brand/20 text-xl shrink-0 mt-0.5"></i>
-                       <div class="flex-1 w-full overflow-hidden">${parsedNotes}</div>
-                    </div>` : ""}
-                </div>
-                <button class="opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider px-3 py-2 rounded-lg text-red-600 bg-red-50 hover:bg-red-500 hover:text-white dark:text-red-400 dark:bg-red-900/20 dark:hover:bg-red-600 dark:hover:text-white shrink-0 flex items-center gap-1 hover:scale-105 active:scale-95" data-id="${log.id}">
-                  <i class="ph-bold ph-trash"></i> Delete
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
 
-        document.querySelectorAll(".group button").forEach(btn => {
-          btn.addEventListener("click", async (e) => {
-            if(!confirm("Delete this session?")) return;
-            const id = e.currentTarget.dataset.id;
+                  <!-- Action Buttons (Edit & Delete) -->
+                  <div class="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" data-edit-id="${log.id}" title="Edit Session" class="edit-log-btn p-2 rounded-lg text-slate-400 hover:text-accent-500 hover:bg-accent-500/10 transition-colors">
+                      <i class="ph-bold ph-pencil-simple text-sm"></i>
+                    </button>
+                    <button type="button" data-delete-id="${log.id}" title="Delete Session" class="delete-log-btn p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
+                      <i class="ph-bold ph-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+
+        // Attach Edit Handlers
+        document.querySelectorAll(".edit-log-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const log = allLogs.find((l) => l.id === btn.dataset.editId);
+            if (!log) return;
+
+            document.getElementById("edit-log-id").value = log.id;
+            document.getElementById("log-date").value = dayKey(log.timestamp);
+            document.getElementById("log-minutes").value = log.minutes || "";
+            document.getElementById("log-subject").value = log.subject;
+            document.getElementById("log-topic").value = log.topic;
+            document.getElementById("log-notes").value = log.notes || "";
+            if (log.tag) document.getElementById("log-tag").value = log.tag;
+
+            document.getElementById("form-mode-title").textContent = "Edit Study Session";
+            document.getElementById("submit-btn-text").textContent = "Update Session";
+            document.getElementById("cancel-edit-btn").classList.remove("hidden");
+            document.getElementById("log-topic").focus();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+
+        // Attach Delete Handlers (Fixed bug from original `.group button` selector)
+        document.querySelectorAll(".delete-log-btn").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            if (!confirm("Delete this session permanently?")) return;
+            const id = btn.dataset.deleteId;
             try {
               await deleteDoc(doc(db, "logs", id));
-              showToast("Session removed");
+              showToast("Session deleted");
               loadLogs();
             } catch (err) {
-              console.error(err);
               showToast("Error deleting session");
             }
           });
         });
       }
 
-      filterSubjectSelect.addEventListener("change", applyFilter);
+      // Cancel Edit Mode
+      function resetFormMode() {
+        document.getElementById("edit-log-id").value = "";
+        document.getElementById("log-topic").value = "";
+        document.getElementById("log-notes").value = "";
+        document.getElementById("log-minutes").value = "";
+        setTodayDateInput();
+        document.getElementById("form-mode-title").textContent = "Log Study Session";
+        document.getElementById("submit-btn-text").textContent = "Commit Session";
+        document.getElementById("cancel-edit-btn").classList.add("hidden");
+      }
 
-      document.getElementById("subject-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const input = document.getElementById("new-subject");
-        const name = input.value.trim();
-        if(!name) return;
-        
-        try {
-          const ref = await addDoc(subsCol, { name, timestamp: new Date().toISOString() });
-          input.value = "";
-          showToast("Subject added");
-          loadSubjects();
+      document.getElementById("cancel-edit-btn").addEventListener("click", resetFormMode);
 
-          // Auto-fetch a matching icon in the background; doesn't block the
-          // add flow and silently no-ops if a match isn't found.
-          fetchIconForSubject(name).then(iconUrl => {
-            if (iconUrl) {
-              updateDoc(doc(db, "subjects", ref.id), { iconUrl }).then(loadSubjects);
-            }
-          });
-        } catch (err) {
-          console.error(err);
-          showToast("Couldn't add subject");
-        }
-      });
-
+      // Submit Session Form (Create or Update)
       document.getElementById("log-form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        const btn = document.getElementById("submit-btn");
+        const editId = document.getElementById("edit-log-id").value;
         const subject = logSubjectSelect.value;
         const topic = document.getElementById("log-topic").value.trim();
         const notes = document.getElementById("log-notes").value.trim();
         const minutes = document.getElementById("log-minutes").value;
-        
-        const dateStr = dateInput.value;
-        const [y, m, d] = dateStr.split('-');
-        const dateVal = new Date(y, m - 1, d, 12, 0, 0); 
-        const timestamp = dateVal.toISOString();
+        const tag = document.getElementById("log-tag").value;
 
-        if(!subject) { alert("Please add and select a subject first."); return; }
+        if (!subject) {
+          alert("Please select or add a subject first.");
+          return;
+        }
 
-        btn.disabled = true; 
-        btn.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Saving…`;
+        const [y, m, d] = dateInput.value.split("-").map(Number);
+        const timestamp = new Date(y, m - 1, d, 12, 0, 0).toISOString();
+
+        const submitBtn = document.getElementById("submit-btn");
+        submitBtn.disabled = true;
+
+        const payload = {
+          subject,
+          topic,
+          notes: notes || null,
+          minutes: minutes ? Number(minutes) : null,
+          tag: tag || "Deep Work",
+          timestamp,
+        };
+
         try {
-          await addDoc(logsCol, {
-            subject, topic, notes: notes || null,
-            minutes: minutes ? Number(minutes) : null,
-            timestamp,
-          });
-          document.getElementById("log-topic").value = "";
-          document.getElementById("log-notes").value = "";
-          document.getElementById("log-minutes").value = "";
-          dateInput.valueAsDate = new Date();
-          showToast("Session logged successfully!");
-          loadLogs();
+          if (editId) {
+            await updateDoc(doc(db, "logs", editId), payload);
+            showToast("Session updated!");
+          } else {
+            await addDoc(logsCol, payload);
+            showToast("Session committed to ledger!");
+          }
+          resetFormMode();
+          await loadLogs();
         } catch (err) {
           console.error(err);
-          showToast("Couldn't save session");
+          showToast("Error saving session");
         } finally {
-          btn.disabled = false; 
-          btn.innerHTML = `<i class="ph-bold ph-check-circle transition-transform group-hover:scale-110"></i> Save Session`;
+          submitBtn.disabled = false;
         }
       });
 
+      // Filter & Search Listeners
+      filterSubjectSelect.addEventListener("change", applyFilter);
+      searchInput.addEventListener("input", applyFilter);
+
+      // ==========================================
+      // 1-CLICK DATA EXPORT (JSON & CSV)
+      // ==========================================
+      document.getElementById("export-json-btn").addEventListener("click", () => {
+        const backup = {
+          exportedAt: new Date().toISOString(),
+          subjects: allSubjects,
+          logs: allLogs,
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `learning-ledger-backup-${dayKey(new Date())}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("JSON backup downloaded");
+      });
+
+      document.getElementById("export-csv-btn").addEventListener("click", () => {
+        const headers = ["Date", "Subject", "Type", "Minutes", "Topic", "Notes"];
+        const rows = allLogs.map((l) => [
+          dayKey(l.timestamp),
+          `"${(l.subject || "").replace(/"/g, '""')}"`,
+          `"${(l.tag || "").replace(/"/g, '""')}"`,
+          l.minutes || 0,
+          `"${(l.topic || "").replace(/"/g, '""')}"`,
+          `"${(l.notes || "").replace(/"/g, '""').replace(/\n/g, " ")}"`,
+        ]);
+        const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `learning-ledger-${dayKey(new Date())}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("CSV exported");
+      });
+
+      // Initialize App
       async function init() {
         await loadSubjects();
         await loadLogs();
