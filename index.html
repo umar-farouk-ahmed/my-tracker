@@ -60,8 +60,9 @@
 
       body {
         background-image: 
-          radial-gradient(at 15% 5%, rgba(99, 102, 241, 0.08) 0px, transparent 45%),
-          radial-gradient(at 85% 15%, rgba(16, 185, 129, 0.07) 0px, transparent 45%);
+          radial-gradient(at 15% 5%, rgba(99, 102, 241, 0.09) 0px, transparent 45%),
+          radial-gradient(at 85% 15%, rgba(16, 185, 129, 0.08) 0px, transparent 45%),
+          radial-gradient(at 50% 90%, rgba(14, 165, 233, 0.05) 0px, transparent 50%);
         background-attachment: fixed;
       }
 
@@ -160,6 +161,75 @@
         opacity: 1;
       }
 
+      /* Modern Dropdown Menu Animation */
+      .subject-dropdown-menu {
+        transform-origin: top left;
+        transform: translateY(-6px) scale(0.96);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
+      }
+      .subject-dropdown-menu.open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Smooth Accordion Expand/Collapse via CSS Grid */
+      .accordion-content-wrapper {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+        opacity: 0;
+      }
+      .accordion-content-wrapper.expanded {
+        grid-template-rows: 1fr;
+        opacity: 1;
+      }
+      .accordion-inner {
+        overflow: hidden;
+      }
+
+      /* Staggered Card Entry Animation */
+      @keyframes logCardSlideIn {
+        0% {
+          opacity: 0;
+          transform: translateY(12px) scale(0.99);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .animate-log-card {
+        animation: logCardSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+      }
+
+      /* Active Timer Glow Pulse */
+      @keyframes timerPulseGlow {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.25), inset 0 0 15px rgba(99, 102, 241, 0.08);
+        }
+        50% {
+          box-shadow: 0 0 22px 2px rgba(16, 185, 129, 0.25), inset 0 0 20px rgba(16, 185, 129, 0.12);
+        }
+      }
+      .timer-active-glow {
+        animation: timerPulseGlow 2.8s infinite ease-in-out;
+        border-color: rgba(99, 102, 241, 0.5) !important;
+      }
+
+      /* Input Pop Feedback */
+      @keyframes inputBump {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.04); border-color: #10b981; }
+        100% { transform: scale(1); }
+      }
+      .input-bump {
+        animation: inputBump 0.28s ease-out;
+      }
+
       /* Markdown Content Styling */
       .md-content p { margin-bottom: 0.45rem; }
       .md-content p:last-child { margin-bottom: 0; }
@@ -252,7 +322,7 @@
       <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         
         <!-- Current Streak -->
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group hover:border-orange-500/30 transition-all">
           <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
             <span>Current Streak</span>
             <i class="ph-fill ph-fire text-orange-500 text-lg group-hover:scale-125 transition-transform"></i>
@@ -266,23 +336,22 @@
           </div>
         </div>
 
-        <!-- Deep Work Hours -->
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+        <!-- Deep Work Hours (Formatted accurately as Xh Ym + decimal hrs + total mins) -->
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group hover:border-accent-500/30 transition-all">
           <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
             <span>Total Time</span>
             <i class="ph-fill ph-clock-countdown text-accent-500 text-lg group-hover:rotate-12 transition-transform"></i>
           </div>
           <div class="flex items-baseline gap-1.5">
-            <span id="stat-hours" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">0.0</span>
-            <span class="text-xs text-slate-400 font-medium">hrs</span>
+            <span id="stat-hours" class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">0m</span>
           </div>
           <div id="stat-mins-sub" class="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            0 total mins
+            0.0 hrs • 0 mins
           </div>
         </div>
 
         <!-- 7-Day Velocity -->
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
           <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
             <span>Last 7 Days</span>
             <i class="ph-fill ph-trend-up text-emerald-500 text-lg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
@@ -297,7 +366,7 @@
         </div>
 
         <!-- Total Sessions -->
-        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group">
+        <div class="p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-900/90 shadow-sm relative overflow-hidden group hover:border-sky-500/30 transition-all">
           <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
             <span>Sessions</span>
             <i class="ph-fill ph-stack text-sky-500 text-lg group-hover:scale-110 transition-transform"></i>
@@ -316,8 +385,8 @@
           <div>
             <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
               <span>Weekly Goal</span>
-              <button id="edit-goal-btn" class="text-slate-400 hover:text-accent-500 transition-colors" title="Set Weekly Target">
-                <i class="ph-bold ph-gear-six"></i>
+              <button id="edit-goal-btn" class="text-slate-400 hover:text-accent-500 transition-colors p-0.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Set Weekly Target">
+                <i class="ph-bold ph-gear-six text-sm"></i>
               </button>
             </div>
             <div class="flex items-baseline justify-between">
@@ -344,40 +413,67 @@
         <!-- Left Column (4 cols): Focus Timer + Session Logger + Subject Manager -->
         <div class="lg:col-span-4 space-y-6">
 
-          <!-- 1. Built-In Pomodoro / Deep Work Timer -->
+          <!-- 1. Built-In Pomodoro / Deep Work Timer (Wall-Clock Accurate) -->
           <section class="p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm relative overflow-hidden">
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
                 <i class="ph-fill ph-timer text-accent-500 text-base"></i> Focus Engine
               </h2>
-              <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-[11px] font-mono font-semibold">
-                <button type="button" data-timer-mode="25" class="timer-preset px-2 py-0.5 rounded bg-white dark:bg-slate-900 text-accent-500 shadow-sm">25m</button>
-                <button type="button" data-timer-mode="50" class="timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white">50m</button>
-                <button type="button" data-timer-mode="0" class="timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white">Stopwatch</button>
+              <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-[11px] font-mono font-semibold">
+                <button type="button" data-timer-mode="25" class="timer-preset px-2 py-0.5 rounded-lg bg-white dark:bg-slate-900 text-accent-500 shadow-sm transition-all">25m</button>
+                <button type="button" data-timer-mode="50" class="timer-preset px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">50m</button>
+                <button type="button" data-timer-mode="90" class="timer-preset px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all">90m</button>
+                <button type="button" data-timer-mode="0" class="timer-preset px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all" title="Count-up Stopwatch">⏱ Up</button>
               </div>
             </div>
 
-            <div class="py-4 px-4 rounded-2xl bg-slate-50 dark:bg-[#0b0f17] border border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between">
-              <div>
-                <div id="timer-display" class="text-3xl sm:text-4xl font-bold font-mono tracking-tight text-slate-900 dark:text-white">
-                  25:00
+            <!-- Timer Display Card -->
+            <div id="timer-box" class="py-4 px-4 rounded-2xl bg-slate-50 dark:bg-[#0b0f17] border border-slate-200/60 dark:border-slate-800/80 transition-all">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="flex items-baseline gap-2">
+                    <div id="timer-display" class="text-3xl sm:text-4xl font-bold font-mono tracking-tight text-slate-900 dark:text-white tabular-nums">
+                      25:00
+                    </div>
+                    <span id="timer-live-pill" class="hidden items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Live
+                    </span>
+                  </div>
+                  <div id="timer-substatus" class="text-[11px] font-mono text-slate-400 mt-1">
+                    Ready to focus • 25m Pomodoro
+                  </div>
                 </div>
-                <div id="timer-substatus" class="text-[11px] font-mono text-slate-400 mt-0.5">
-                  Ready to focus
+
+                <div class="flex items-center gap-2">
+                  <button type="button" id="timer-start-btn" title="Start / Pause Timer" class="w-11 h-11 rounded-xl bg-accent-600 hover:bg-accent-500 text-white flex items-center justify-center shadow-md shadow-accent-600/20 transition-all active:scale-95">
+                    <i id="timer-play-icon" class="ph-fill ph-play text-lg"></i>
+                  </button>
+                  <button type="button" id="timer-reset-btn" title="Reset Timer" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all active:scale-95">
+                    <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
+                  </button>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button type="button" id="timer-start-btn" class="w-10 h-10 rounded-xl bg-accent-600 hover:bg-accent-500 text-white flex items-center justify-center shadow-md shadow-accent-600/20 transition-all">
-                  <i id="timer-play-icon" class="ph-fill ph-play text-lg"></i>
-                </button>
-                <button type="button" id="timer-reset-btn" title="Reset Timer" class="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-200/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center transition-all">
-                  <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
-                </button>
+
+              <!-- Visual Progress Bar -->
+              <div class="mt-3.5 w-full h-1.5 bg-slate-200/70 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div id="timer-progress-bar" class="h-full bg-gradient-to-r from-accent-500 to-emerald-400 transition-all duration-300 w-0 rounded-full"></div>
+              </div>
+
+              <!-- Custom Timer Input Row -->
+              <div class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-2 text-xs">
+                <span class="text-[11px] font-mono text-slate-400">Custom countdown:</span>
+                <div class="flex items-center gap-1.5">
+                  <input type="number" id="custom-timer-input" min="1" max="480" placeholder="40" class="w-16 px-2 py-1 text-xs font-mono text-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 outline-none focus:border-accent-500 dark:text-white" />
+                  <button type="button" id="set-custom-timer-btn" class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold bg-slate-200/70 dark:bg-slate-800 hover:bg-accent-500 hover:text-white text-slate-700 dark:text-slate-300 transition-colors">
+                    Set Mins
+                  </button>
+                </div>
               </div>
             </div>
 
-            <button type="button" id="timer-apply-btn" class="mt-3 w-full py-2 rounded-xl border border-dashed border-accent-500/40 text-accent-600 dark:text-accent-400 hover:bg-accent-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
-              <i class="ph-bold ph-arrow-Elbow-right-down"></i> Transfer Elapsed Minutes to Logger
+            <button type="button" id="timer-apply-btn" class="mt-3 w-full py-2.5 rounded-xl border border-dashed border-accent-500/40 text-accent-600 dark:text-accent-400 hover:bg-accent-500/10 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.99]">
+              <i class="ph-bold ph-arrow-elbow-right-down"></i>
+              <span id="timer-apply-text">Transfer Elapsed Time to Logger</span>
             </button>
           </section>
 
@@ -404,18 +500,22 @@
                   <input type="date" id="log-date" required class="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-500 dark:text-slate-400">Duration (Mins)</label>
-                  <input type="number" id="log-minutes" placeholder="45" min="1" required class="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+                  <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Duration (Mins)</label>
+                    <span id="duration-hm-preview" class="text-[10px] font-mono text-accent-500 font-semibold"></span>
+                  </div>
+                  <input type="number" id="log-minutes" placeholder="45" min="1" required class="w-full px-3 py-2 text-xs sm:text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white transition-transform" />
                 </div>
               </div>
 
-              <!-- Quick Minute Pills -->
-              <div class="flex items-center gap-1.5 pt-0.5">
-                <span class="text-[10px] font-mono uppercase text-slate-400 mr-1">Quick:</span>
-                <button type="button" data-quick-min="15" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+15m</button>
-                <button type="button" data-quick-min="30" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+30m</button>
-                <button type="button" data-quick-min="60" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+60m</button>
-                <button type="button" data-quick-min="90" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors">+90m</button>
+              <!-- Additive Quick Minute Pills -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span class="text-[10px] font-mono uppercase text-slate-400 mr-0.5">Add Time:</span>
+                <button type="button" data-quick-min="15" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors active:scale-95">+15m</button>
+                <button type="button" data-quick-min="30" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors active:scale-95">+30m</button>
+                <button type="button" data-quick-min="60" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors active:scale-95">+60m</button>
+                <button type="button" data-quick-min="90" class="quick-min-btn px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 hover:bg-accent-500 hover:text-white transition-colors active:scale-95">+90m</button>
+                <button type="button" id="clear-min-btn" title="Clear duration" class="px-2 py-0.5 rounded-md text-[11px] font-mono text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors ml-auto">Clear</button>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -486,7 +586,7 @@
 
         </div>
 
-        <!-- Right Column (8 cols): Activity Matrix + Dual Analytics + Searchable Timeline -->
+        <!-- Right Column (8 cols): Activity Matrix + Dual Analytics + Session Ledger with Subject Names Dropdown -->
         <div class="lg:col-span-8 space-y-6">
 
           <!-- 1. Contribution Heatmap Card -->
@@ -584,22 +684,145 @@
 
           </section>
 
-          <!-- 3. Knowledge Timeline & Search -->
+          <!-- 3. Session Ledger with Animated "Subject Names" Dropdown & Accordion/Timeline Views -->
           <section class="p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-              <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold font-display">Session Ledger</h2>
-                <span id="logs-count-pill" class="text-xs font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">0 entries</span>
+            
+            <!-- Session Ledger Header Bar -->
+            <div class="flex flex-col gap-4 mb-5">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-accent-500/10 text-accent-500 flex items-center justify-center">
+                    <i class="ph-bold ph-books text-lg"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h2 class="text-lg font-bold font-display">Session Ledger</h2>
+                      <span id="logs-count-pill" class="text-xs font-mono px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">0 entries</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 hidden sm:block">Select a subject from the dropdown or click a subject group to inspect entries</p>
+                  </div>
+                </div>
+
+                <!-- View Mode Switcher (Timeline vs Subject Groups) -->
+                <div class="inline-flex items-center rounded-xl p-1 bg-slate-100 dark:bg-[#0b0f17] border border-slate-200/60 dark:border-slate-800 text-xs font-semibold">
+                  <button type="button" id="view-grouped-btn" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition-all">
+                    <i class="ph-bold ph-folders"></i> Subject Groups
+                  </button>
+                  <button type="button" id="view-timeline-btn" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm flex items-center gap-1.5 transition-all">
+                    <i class="ph-bold ph-list-bullets"></i> Timeline
+                  </button>
+                </div>
               </div>
 
-              <!-- Search Input -->
-              <div class="relative w-full sm:w-72">
-                <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="search-logs-input" placeholder="Search topics, notes, or tags..." class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+              <!-- Interactive Filter Bar: Custom "Subject Names" Dropdown + Search Input -->
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+                
+                <!-- Custom Animated "Subject Names" Dropdown -->
+                <div class="relative" id="ledger-subject-dropdown-wrapper">
+                  <button
+                    type="button"
+                    id="ledger-subject-dropdown-btn"
+                    aria-expanded="false"
+                    class="w-full sm:w-auto min-w-[235px] flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-[#0b0f17] hover:border-accent-500/60 text-left transition-all shadow-sm group"
+                  >
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-accent-500/20 to-emerald-500/20 border border-accent-500/30 text-accent-600 dark:text-accent-400 flex items-center justify-center shrink-0">
+                        <i class="ph-bold ph-folder-notch-open text-sm"></i>
+                      </span>
+                      <div class="truncate">
+                        <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 leading-none mb-0.5">Subject Names</div>
+                        <div id="ledger-dropdown-active-label" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+                          All Subjects
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <span id="ledger-dropdown-active-count" class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                        All
+                      </span>
+                      <i id="ledger-dropdown-chevron" class="ph-bold ph-caret-down text-slate-400 group-hover:text-accent-500 transition-transform duration-300"></i>
+                    </div>
+                  </button>
+
+                  <!-- Glassmorphic Animated Dropdown Panel -->
+                  <div
+                    id="ledger-subject-dropdown-menu"
+                    class="subject-dropdown-menu absolute left-0 mt-2 w-full sm:w-80 rounded-2xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl z-40 overflow-hidden"
+                  >
+                    <div class="p-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 bg-slate-50/60 dark:bg-slate-950/50">
+                      <i class="ph-bold ph-funnel text-accent-500 text-xs ml-1"></i>
+                      <input
+                        type="text"
+                        id="dropdown-subject-search"
+                        placeholder="Filter subject names..."
+                        class="w-full bg-transparent text-xs outline-none text-slate-800 dark:text-slate-200 placeholder:text-slate-400 font-medium"
+                      />
+                    </div>
+                    <div id="ledger-subject-dropdown-list" class="max-h-72 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                      <!-- Populated dynamically with Subject Names, icons, entry counts, and total time -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative flex-1">
+                  <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                  <input
+                    type="text"
+                    id="search-logs-input"
+                    placeholder="Search topics, markdown notes, or tags..."
+                    class="w-full pl-9 pr-9 py-2.5 text-xs sm:text-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white transition-all"
+                  />
+                  <button
+                    type="button"
+                    id="clear-search-btn"
+                    title="Clear search"
+                    class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 text-xs"
+                  >
+                    <i class="ph-bold ph-x-circle text-base"></i>
+                  </button>
+                </div>
+
               </div>
             </div>
 
-            <div id="logs-container" class="space-y-3 max-h-[540px] overflow-y-auto pr-1 custom-scrollbar">
+            <!-- Active Subject Spotlight Banner (Appears with smooth animation when a Subject Name is selected) -->
+            <div id="ledger-subject-banner" class="hidden mb-4 p-4 rounded-2xl bg-gradient-to-r from-accent-500/10 via-indigo-500/5 to-emerald-500/10 border border-accent-500/25 transition-all">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div id="banner-subject-icon" class="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center text-accent-500 shadow-sm">
+                    <i class="ph-bold ph-folder-open text-xl"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-accent-500/20 text-accent-600 dark:text-accent-300 font-bold">Active Subject Filter</span>
+                    </div>
+                    <h3 id="banner-subject-name" class="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-white mt-0.5">Subject Name</h3>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-4 sm:gap-6 ml-auto">
+                  <div class="text-right">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Subject Time</div>
+                    <div id="banner-subject-time" class="text-sm sm:text-base font-bold font-mono text-emerald-600 dark:text-emerald-400">0h 0m</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Entries</div>
+                    <div id="banner-subject-count" class="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-white">0</div>
+                  </div>
+                  <button
+                    type="button"
+                    id="banner-reset-subject-btn"
+                    class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 hover:bg-rose-500 hover:text-white text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition-colors flex items-center gap-1 shadow-sm"
+                  >
+                    <i class="ph-bold ph-x"></i> Show All
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logs Container -->
+            <div id="logs-container" class="space-y-3 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
               <div class="p-10 text-center text-sm text-slate-400 animate-pulse">
                 Loading your study ledger...
               </div>
@@ -611,12 +834,44 @@
       </div>
     </main>
 
+    <!-- Custom Modal Dialog (Replaces browser prompt() and confirm()) -->
+    <div id="app-modal-backdrop" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-200">
+      <div id="app-modal-card" class="w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xl transform scale-95 transition-transform duration-200">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-center gap-2.5">
+            <div id="modal-icon-box" class="w-9 h-9 rounded-xl bg-accent-500/10 text-accent-500 flex items-center justify-center">
+              <i id="modal-icon" class="ph-bold ph-gear-six text-lg"></i>
+            </div>
+            <h3 id="modal-title" class="text-base font-bold font-display text-slate-900 dark:text-white">Modal Title</h3>
+          </div>
+          <button type="button" id="modal-close-btn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+            <i class="ph-bold ph-x text-base"></i>
+          </button>
+        </div>
+
+        <p id="modal-description" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed"></p>
+
+        <div id="modal-input-wrapper" class="hidden mb-4">
+          <input type="number" id="modal-number-input" min="10" max="10000" class="w-full px-3.5 py-2.5 text-sm font-mono rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] outline-none focus:border-accent-500 dark:text-white" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5">
+          <button type="button" id="modal-cancel-btn" class="px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            Cancel
+          </button>
+          <button type="button" id="modal-confirm-btn" class="px-4 py-2 rounded-xl text-xs font-semibold bg-accent-600 hover:bg-accent-500 text-white shadow-md shadow-accent-600/20 transition-colors">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Floating Heatmap Tooltip -->
     <div id="tooltip" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-3 py-1.5 rounded-lg text-xs font-mono shadow-xl border border-slate-700 dark:border-slate-200"></div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast-notification fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl text-sm font-semibold">
-      <i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i>
+    <div id="toast" class="toast-notification fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-2xl text-sm font-semibold border border-slate-700/50 dark:border-slate-200">
+      <i id="toast-icon" class="ph-fill ph-check-circle text-emerald-500 text-lg"></i>
       <span id="toast-msg">Action completed</span>
     </div>
 
@@ -648,20 +903,89 @@
       const statusDot = document.getElementById("status-dot");
       const statusText = document.getElementById("status-text");
       const dateInput = document.getElementById("log-date");
+      const minutesInput = document.getElementById("log-minutes");
+      const durationHmPreview = document.getElementById("duration-hm-preview");
       const logSubjectSelect = document.getElementById("log-subject");
       const filterSubjectSelect = document.getElementById("filter-subject");
       const logsContainer = document.getElementById("logs-container");
       const searchInput = document.getElementById("search-logs-input");
+      const clearSearchBtn = document.getElementById("clear-search-btn");
 
-      // State
+      // Custom Session Ledger Subject Dropdown Elements
+      const ledgerDropdownWrapper = document.getElementById("ledger-subject-dropdown-wrapper");
+      const ledgerDropdownBtn = document.getElementById("ledger-subject-dropdown-btn");
+      const ledgerDropdownMenu = document.getElementById("ledger-subject-dropdown-menu");
+      const ledgerDropdownList = document.getElementById("ledger-subject-dropdown-list");
+      const ledgerDropdownActiveLabel = document.getElementById("ledger-dropdown-active-label");
+      const ledgerDropdownActiveCount = document.getElementById("ledger-dropdown-active-count");
+      const ledgerDropdownChevron = document.getElementById("ledger-dropdown-chevron");
+      const dropdownSubjectSearch = document.getElementById("dropdown-subject-search");
+
+      // Application State
       let allLogs = [];
       let allSubjects = [];
       let heatmapMetric = "minutes"; // "minutes" | "sessions"
       let selectedDateKey = null;    // YYYY-MM-DD or null
+      let ledgerSubjectFilter = "ALL"; // Synced with Session Ledger Subject Names dropdown
+      let ledgerViewMode = "timeline"; // "timeline" | "grouped"
+      let expandedSubjectGroups = new Set(); // Tracks open subject accordions in grouped mode
       let timeChartInstance = null;
       let velocityChartInstance = null;
       let tooltipTimeout = null;
-      let weeklyGoalMins = parseInt(localStorage.getItem("weeklyGoalMins")) || 300;
+      let weeklyGoalMins = parseInt(localStorage.getItem("weeklyGoalMins"), 10) || 300;
+      const defaultPageTitle = "Chronos // Learning & Engineering Ledger";
+
+      // ==========================================
+      // TIME PARSING & FORMATTING HELPERS
+      // ==========================================
+      /**
+       * Safely extracts numeric minutes from any log object, preventing NaN or string concatenation bugs.
+       */
+      function getLogMinutes(log) {
+        if (!log) return 0;
+        const raw = log.minutes ?? log.duration ?? log.time ?? 0;
+        if (typeof raw === "number" && !isNaN(raw)) return Math.max(0, Math.round(raw));
+        if (typeof raw === "string") {
+          const parsed = parseFloat(raw.replace(/[^\d.]/g, ""));
+          return !isNaN(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+        }
+        return 0;
+      }
+
+      /**
+       * Formats minutes into clean human-readable `Xh Ym` or `Ym` string.
+       */
+      function formatMinutesHM(totalMinutes) {
+        const mins = Math.max(0, Math.round(Number(totalMinutes) || 0));
+        if (mins === 0) return "0m";
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        if (h === 0) return `${m}m`;
+        if (m === 0) return `${h}h`;
+        return `${h}h ${m}m`;
+      }
+
+      /**
+       * Formats seconds into `Xm Ys` or `Ys` for timer substatus.
+       */
+      function formatElapsedSecondsText(totalSecs) {
+        const s = Math.max(0, Math.floor(totalSecs));
+        const m = Math.floor(s / 60);
+        const remS = s % 60;
+        if (m === 0) return `${remS}s`;
+        return `${m}m ${remS}s`;
+      }
+
+      // Live preview of hours/mins next to Duration input
+      function updateDurationInputPreview() {
+        const val = parseInt(minutesInput.value, 10);
+        if (!isNaN(val) && val >= 60) {
+          durationHmPreview.textContent = `= ${formatMinutesHM(val)}`;
+        } else {
+          durationHmPreview.textContent = "";
+        }
+      }
+      minutesInput.addEventListener("input", updateDurationInputPreview);
 
       // Set today's date in local timezone
       function setTodayDateInput() {
@@ -674,6 +998,86 @@
       setTodayDateInput();
 
       marked.setOptions({ breaks: true, gfm: true });
+
+      // ==========================================
+      // CUSTOM MODAL HELPER (No alert/confirm/prompt)
+      // ==========================================
+      const modalBackdrop = document.getElementById("app-modal-backdrop");
+      const modalCard = document.getElementById("app-modal-card");
+      const modalTitle = document.getElementById("modal-title");
+      const modalDesc = document.getElementById("modal-description");
+      const modalInputWrapper = document.getElementById("modal-input-wrapper");
+      const modalNumberInput = document.getElementById("modal-number-input");
+      const modalConfirmBtn = document.getElementById("modal-confirm-btn");
+      const modalCancelBtn = document.getElementById("modal-cancel-btn");
+      const modalCloseBtn = document.getElementById("modal-close-btn");
+      const modalIcon = document.getElementById("modal-icon");
+      const modalIconBox = document.getElementById("modal-icon-box");
+
+      let activeModalResolver = null;
+
+      function openCustomModal({ title, description, inputMode = false, defaultValue = "", confirmText = "Confirm", danger = false }) {
+        return new Promise((resolve) => {
+          activeModalResolver = resolve;
+          modalTitle.textContent = title;
+          modalDesc.textContent = description;
+          modalConfirmBtn.textContent = confirmText;
+
+          if (danger) {
+            modalIcon.className = "ph-bold ph-warning-octagon text-lg";
+            modalIconBox.className = "w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center";
+            modalConfirmBtn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white shadow-md shadow-rose-600/20 transition-colors";
+          } else {
+            modalIcon.className = "ph-bold ph-sliders-horizontal text-lg";
+            modalIconBox.className = "w-9 h-9 rounded-xl bg-accent-500/10 text-accent-500 flex items-center justify-center";
+            modalConfirmBtn.className = "px-4 py-2 rounded-xl text-xs font-semibold bg-accent-600 hover:bg-accent-500 text-white shadow-md shadow-accent-600/20 transition-colors";
+          }
+
+          if (inputMode) {
+            modalInputWrapper.classList.remove("hidden");
+            modalNumberInput.value = defaultValue;
+            setTimeout(() => modalNumberInput.focus(), 50);
+          } else {
+            modalInputWrapper.classList.add("hidden");
+          }
+
+          modalBackdrop.classList.remove("hidden");
+          modalBackdrop.classList.add("flex");
+          requestAnimationFrame(() => {
+            modalBackdrop.classList.remove("opacity-0");
+            modalCard.classList.remove("scale-95");
+            modalCard.classList.add("scale-100");
+          });
+        });
+      }
+
+      function closeCustomModal(result) {
+        modalBackdrop.classList.add("opacity-0");
+        modalCard.classList.remove("scale-100");
+        modalCard.classList.add("scale-95");
+        setTimeout(() => {
+          modalBackdrop.classList.add("hidden");
+          modalBackdrop.classList.remove("flex");
+          if (activeModalResolver) {
+            const resolve = activeModalResolver;
+            activeModalResolver = null;
+            resolve(result);
+          }
+        }, 180);
+      }
+
+      modalConfirmBtn.addEventListener("click", () => {
+        if (!modalInputWrapper.classList.contains("hidden")) {
+          closeCustomModal(modalNumberInput.value);
+        } else {
+          closeCustomModal(true);
+        }
+      });
+      modalCancelBtn.addEventListener("click", () => closeCustomModal(null));
+      modalCloseBtn.addEventListener("click", () => closeCustomModal(null));
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) closeCustomModal(null);
+      });
 
       // Theme Management
       const htmlEl = document.documentElement;
@@ -703,31 +1107,52 @@
       });
 
       // Toast Helper
-      function showToast(msg) {
+      let toastTimer = null;
+      function showToast(msg, type = "success") {
         const toast = document.getElementById("toast");
+        const icon = document.getElementById("toast-icon");
         document.getElementById("toast-msg").textContent = msg;
+        if (type === "warn") {
+          icon.className = "ph-fill ph-warning-circle text-amber-500 text-lg";
+        } else {
+          icon.className = "ph-fill ph-check-circle text-emerald-500 text-lg";
+        }
         toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 2600);
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
       }
 
-      // Date Formatting Key (YYYY-MM-DD)
+      // Date Formatting Key (YYYY-MM-DD in Local Time)
       function dayKey(d) {
         const dt = new Date(d);
+        if (isNaN(dt.getTime())) return "";
         return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
       }
 
-      // ==========================================
-      // FOCUS TIMER ENGINE (Pomodoro + Stopwatch)
-      // ==========================================
-      let timerModeMins = 25; // 0 = Stopwatch
-      let timerSeconds = 25 * 60;
-      let timerElapsedSecs = 0;
-      let timerInterval = null;
-      let timerRunning = false;
+      // Parse YYYY-MM-DD key into local midnight Date object for accurate calendar comparisons
+      function parseLocalDayKey(keyStr) {
+        if (!keyStr) return null;
+        const parts = keyStr.split("-").map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return null;
+        return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      }
 
+      // ==========================================
+      // FOCUS TIMER ENGINE (Wall-Clock Accurate)
+      // ==========================================
+      let timerModeMins = 25; // 0 = Stopwatch mode, > 0 = Countdown mode in minutes
+      let timerRunning = false;
+      let timerStartWallClockMs = null; // Date.now() when current run segment started
+      let accumulatedElapsedMs = 0;     // Total ms elapsed prior to current segment
+      let timerInterval = null;
+
+      const timerBox = document.getElementById("timer-box");
       const timerDisplay = document.getElementById("timer-display");
       const timerSubstatus = document.getElementById("timer-substatus");
       const timerPlayIcon = document.getElementById("timer-play-icon");
+      const timerLivePill = document.getElementById("timer-live-pill");
+      const timerProgressBar = document.getElementById("timer-progress-bar");
+      const timerApplyText = document.getElementById("timer-apply-text");
 
       function playChime() {
         try {
@@ -747,108 +1172,225 @@
         } catch (_) {}
       }
 
-      function formatTimer(secs) {
-        const m = Math.floor(secs / 60);
-        const s = secs % 60;
-        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      function formatClockMMSS(totalSeconds) {
+        const clamped = Math.max(0, Math.floor(totalSeconds));
+        const hrs = Math.floor(clamped / 3600);
+        const mins = Math.floor((clamped % 3600) / 60);
+        const secs = clamped % 60;
+        if (hrs > 0) {
+          return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
       }
 
-      function updateTimerView() {
-        timerDisplay.textContent = formatTimer(timerSeconds);
-        const elapsedMins = Math.max(1, Math.round(timerElapsedSecs / 60));
-        timerSubstatus.textContent = timerRunning
-          ? `Focusing... (${elapsedMins}m elapsed)`
-          : timerElapsedSecs > 0
-          ? `Paused • ${elapsedMins}m ready to log`
-          : timerModeMins === 0
-          ? "Stopwatch mode"
-          : `${timerModeMins}m Pomodoro preset`;
+      /**
+       * Computes exact total elapsed seconds using wall-clock delta so background tabs never cause drift.
+       */
+      function getTotalElapsedSeconds() {
+        let totalMs = accumulatedElapsedMs;
+        if (timerRunning && timerStartWallClockMs !== null) {
+          totalMs += Math.max(0, Date.now() - timerStartWallClockMs);
+        }
+        return Math.floor(totalMs / 1000);
       }
 
+      function syncTimerTick() {
+        const elapsedSecs = getTotalElapsedSeconds();
+        const targetSecs = timerModeMins * 60;
+
+        let displaySecs = 0;
+        let progressPct = 0;
+
+        if (timerModeMins === 0) {
+          // Stopwatch count-up mode
+          displaySecs = elapsedSecs;
+          // Visual progress bar loops every 60 minutes for subtle visual feedback
+          progressPct = Math.min(100, ((elapsedSecs % 3600) / 3600) * 100);
+        } else {
+          // Countdown mode
+          const remainingSecs = Math.max(0, targetSecs - elapsedSecs);
+          displaySecs = remainingSecs;
+          progressPct = targetSecs > 0 ? Math.min(100, (elapsedSecs / targetSecs) * 100) : 0;
+
+          // Check if countdown finished
+          if (remainingSecs === 0 && timerRunning) {
+            pauseTimerInternal();
+            accumulatedElapsedMs = targetSecs * 1000;
+            playChime();
+            minutesInput.value = timerModeMins;
+            updateDurationInputPreview();
+            triggerInputBump(minutesInput);
+            showToast(`Focus session complete! ${timerModeMins} mins transferred to logger.`);
+          }
+        }
+
+        const formattedClock = formatClockMMSS(displaySecs);
+        timerDisplay.textContent = formattedClock;
+        timerProgressBar.style.width = `${progressPct.toFixed(1)}%`;
+
+        const transferableMins = elapsedSecs > 0 ? Math.max(1, Math.round(elapsedSecs / 60)) : 0;
+
+        if (timerRunning) {
+          document.title = `(${formattedClock}) ⚡ Chronos`;
+          timerSubstatus.textContent = `Focusing • ${formatElapsedSecondsText(elapsedSecs)} elapsed`;
+          timerApplyText.textContent = `Transfer ${transferableMins}m Elapsed to Logger`;
+        } else {
+          document.title = defaultPageTitle;
+          if (elapsedSecs > 0) {
+            timerSubstatus.textContent = `Paused • ${formatElapsedSecondsText(elapsedSecs)} elapsed (${transferableMins}m to log)`;
+            timerApplyText.textContent = `Transfer ${transferableMins}m Elapsed to Logger`;
+          } else {
+            timerSubstatus.textContent =
+              timerModeMins === 0
+                ? "Stopwatch mode • Counts up from 00:00"
+                : `Ready to focus • ${timerModeMins}m Pomodoro`;
+            timerApplyText.textContent = "Transfer Elapsed Time to Logger";
+          }
+        }
+      }
+
+      function startTimerInternal() {
+        if (timerRunning) return;
+        // If countdown already reached 0, reset elapsed before starting again
+        if (timerModeMins > 0 && getTotalElapsedSeconds() >= timerModeMins * 60) {
+          accumulatedElapsedMs = 0;
+        }
+        timerRunning = true;
+        timerStartWallClockMs = Date.now();
+        timerPlayIcon.className = "ph-fill ph-pause text-lg";
+        timerLivePill.classList.remove("hidden");
+        timerLivePill.classList.add("inline-flex");
+        timerBox.classList.add("timer-active-glow");
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(syncTimerTick, 250);
+        syncTimerTick();
+      }
+
+      function pauseTimerInternal() {
+        if (timerRunning && timerStartWallClockMs !== null) {
+          accumulatedElapsedMs += Math.max(0, Date.now() - timerStartWallClockMs);
+        }
+        timerRunning = false;
+        timerStartWallClockMs = null;
+        clearInterval(timerInterval);
+        timerPlayIcon.className = "ph-fill ph-play text-lg";
+        timerLivePill.classList.add("hidden");
+        timerLivePill.classList.remove("inline-flex");
+        timerBox.classList.remove("timer-active-glow");
+        document.title = defaultPageTitle;
+        syncTimerTick();
+      }
+
+      function resetTimerInternal() {
+        pauseTimerInternal();
+        accumulatedElapsedMs = 0;
+        syncTimerTick();
+      }
+
+      // Recalculate immediately when switching back to tab
+      document.addEventListener("visibilitychange", () => {
+        if (timerRunning) syncTimerTick();
+      });
+
+      // Timer Preset Buttons
       document.querySelectorAll(".timer-preset").forEach((btn) => {
         btn.addEventListener("click", () => {
-          clearInterval(timerInterval);
-          timerRunning = false;
-          timerPlayIcon.className = "ph-fill ph-play text-lg";
           timerModeMins = parseInt(btn.dataset.timerMode, 10);
-          timerSeconds = timerModeMins * 60;
-          timerElapsedSecs = 0;
-
           document.querySelectorAll(".timer-preset").forEach((b) => {
-            b.className = "timer-preset px-2 py-0.5 rounded text-slate-500 hover:text-slate-900 dark:hover:text-white";
+            b.className = "timer-preset px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all";
           });
-          btn.className = "timer-preset px-2 py-0.5 rounded bg-white dark:bg-slate-900 text-accent-500 shadow-sm";
-          updateTimerView();
+          btn.className = "timer-preset px-2 py-0.5 rounded-lg bg-white dark:bg-slate-900 text-accent-500 shadow-sm transition-all";
+          resetTimerInternal();
         });
+      });
+
+      // Custom Timer Countdown Setter
+      document.getElementById("set-custom-timer-btn").addEventListener("click", () => {
+        const customInput = document.getElementById("custom-timer-input");
+        const mins = parseInt(customInput.value, 10);
+        if (isNaN(mins) || mins < 1 || mins > 480) {
+          showToast("Enter a custom duration between 1 and 480 mins", "warn");
+          return;
+        }
+        timerModeMins = mins;
+        document.querySelectorAll(".timer-preset").forEach((b) => {
+          b.className = "timer-preset px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all";
+        });
+        resetTimerInternal();
+        showToast(`Timer set to ${mins} minutes`);
       });
 
       document.getElementById("timer-start-btn").addEventListener("click", () => {
         if (timerRunning) {
-          clearInterval(timerInterval);
-          timerRunning = false;
-          timerPlayIcon.className = "ph-fill ph-play text-lg";
-          updateTimerView();
-          return;
+          pauseTimerInternal();
+        } else {
+          startTimerInternal();
         }
-        timerRunning = true;
-        timerPlayIcon.className = "ph-fill ph-pause text-lg";
-        timerInterval = setInterval(() => {
-          timerElapsedSecs++;
-          if (timerModeMins === 0) {
-            timerSeconds++;
-          } else {
-            if (timerSeconds > 0) {
-              timerSeconds--;
-            } else {
-              clearInterval(timerInterval);
-              timerRunning = false;
-              timerPlayIcon.className = "ph-fill ph-play text-lg";
-              playChime();
-              document.getElementById("log-minutes").value = timerModeMins;
-              showToast(`Focus session complete! ${timerModeMins} mins transferred.`);
-            }
-          }
-          updateTimerView();
-        }, 1000);
       });
 
-      document.getElementById("timer-reset-btn").addEventListener("click", () => {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        timerPlayIcon.className = "ph-fill ph-play text-lg";
-        timerSeconds = timerModeMins * 60;
-        timerElapsedSecs = 0;
-        updateTimerView();
-      });
+      document.getElementById("timer-reset-btn").addEventListener("click", resetTimerInternal);
+
+      function triggerInputBump(el) {
+        el.classList.remove("input-bump");
+        void el.offsetWidth;
+        el.classList.add("input-bump");
+      }
 
       document.getElementById("timer-apply-btn").addEventListener("click", () => {
-        const mins = Math.max(1, Math.round(timerElapsedSecs / 60));
-        document.getElementById("log-minutes").value = mins;
+        const elapsedSecs = getTotalElapsedSeconds();
+        if (elapsedSecs <= 0) {
+          showToast("Start the focus timer first to accumulate study time!", "warn");
+          return;
+        }
+        const mins = Math.max(1, Math.round(elapsedSecs / 60));
+        minutesInput.value = mins;
+        updateDurationInputPreview();
+        triggerInputBump(minutesInput);
         document.getElementById("log-topic").focus();
-        showToast(`Transferred ${mins} min${mins > 1 ? "s" : ""} to logger`);
+        showToast(`Transferred ${mins} min${mins > 1 ? "s" : ""} (${formatElapsedSecondsText(elapsedSecs)}) to logger`);
       });
 
-      // Quick Minute Increment Buttons
+      // ==========================================
+      // ADDITIVE QUICK MINUTE PILLS (+15m, +30m, +60m, +90m, Clear)
+      // ==========================================
       document.querySelectorAll(".quick-min-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
-          const input = document.getElementById("log-minutes");
-          const addVal = parseInt(btn.dataset.quickMin, 10);
-          input.value = addVal;
+          const addVal = parseInt(btn.dataset.quickMin, 10) || 0;
+          const currentVal = parseInt(minutesInput.value, 10) || 0;
+          minutesInput.value = currentVal + addVal;
+          updateDurationInputPreview();
+          triggerInputBump(minutesInput);
         });
       });
 
+      document.getElementById("clear-min-btn").addEventListener("click", () => {
+        minutesInput.value = "";
+        updateDurationInputPreview();
+        minutesInput.focus();
+      });
+
       // ==========================================
-      // WEEKLY GOAL SETTING
+      // WEEKLY GOAL SETTING (Custom Modal)
       // ==========================================
       document.getElementById("goal-target-text").textContent = weeklyGoalMins;
-      document.getElementById("edit-goal-btn").addEventListener("click", () => {
-        const val = prompt("Set weekly study target (in minutes):", weeklyGoalMins);
-        if (val && !isNaN(val) && parseInt(val, 10) > 0) {
-          weeklyGoalMins = parseInt(val, 10);
-          localStorage.setItem("weeklyGoalMins", weeklyGoalMins);
-          document.getElementById("goal-target-text").textContent = weeklyGoalMins;
-          applyFilter();
-          showToast(`Weekly target set to ${weeklyGoalMins} mins`);
+      document.getElementById("edit-goal-btn").addEventListener("click", async () => {
+        const val = await openCustomModal({
+          title: "Set Weekly Study Target",
+          description: "Enter your target deep-work study minutes for the 7-day rolling window (e.g., 300 mins = 5 hours):",
+          inputMode: true,
+          defaultValue: weeklyGoalMins,
+          confirmText: "Save Target",
+        });
+        if (val !== null) {
+          const parsed = parseInt(val, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            weeklyGoalMins = parsed;
+            localStorage.setItem("weeklyGoalMins", weeklyGoalMins);
+            document.getElementById("goal-target-text").textContent = weeklyGoalMins;
+            applyFilter();
+            showToast(`Weekly target set to ${weeklyGoalMins} mins (${formatMinutesHM(weeklyGoalMins)})`);
+          }
         }
       });
 
@@ -868,11 +1410,20 @@
         return null;
       }
 
+      function getSubjectIconHTML(subjectName, sizeClass = "w-4 h-4") {
+        const subObj = allSubjects.find((s) => s.name === subjectName);
+        if (subObj && subObj.iconUrl) {
+          return `<img src="${subObj.iconUrl}" alt="" class="${sizeClass} shrink-0" onerror="this.style.display='none'" />`;
+        }
+        return `<i class="ph-bold ph-hash text-accent-500"></i>`;
+      }
+
       async function loadSubjects() {
         const snap = await getDocs(query(subsCol, orderBy("name", "asc")));
         allSubjects = [];
         snap.forEach((d) => allSubjects.push({ id: d.id, ...d.data() }));
         renderSubjectUI();
+        renderLedgerSubjectDropdown();
       }
 
       function renderSubjectChip(s, completed) {
@@ -882,10 +1433,10 @@
 
         const baseCls = completed
           ? "px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-800/40 text-slate-400 flex items-center gap-1.5 line-through"
-          : "px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 font-semibold flex items-center gap-1.5 hover:border-accent-500/40 transition-all";
+          : "px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f17] text-slate-700 dark:text-slate-200 font-semibold flex items-center gap-1.5 hover:border-accent-500/40 transition-all cursor-pointer";
 
         return `
-          <div class="${baseCls}">
+          <div class="${baseCls}" data-chip-subject="${s.name}" title="Click to filter Session Ledger by ${s.name}">
             ${iconHTML}
             <span>${s.name}</span>
             <button type="button" data-toggle-sub="${s.id}" data-completed="${completed}" title="${completed ? "Restore subject" : "Mark completed"}" class="ml-1 text-slate-400 hover:text-emerald-500 transition-colors">
@@ -919,33 +1470,50 @@
           compList.innerHTML = "";
         }
 
+        // Clicking a subject chip filters the Session Ledger directly
+        document.querySelectorAll("[data-chip-subject]").forEach((chip) => {
+          chip.addEventListener("click", (e) => {
+            if (e.target.closest("button")) return;
+            const subName = chip.dataset.chipSubject;
+            selectLedgerSubject(subName);
+          });
+        });
+
         // Toggle Complete / Active
         document.querySelectorAll("[data-toggle-sub]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
+          btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
             const id = btn.dataset.toggleSub;
             const nextState = btn.dataset.completed !== "true";
             try {
               await updateDoc(doc(db, "subjects", id), { completed: nextState });
               showToast(nextState ? "Track archived as complete" : "Track restored to active");
               loadSubjects();
-            } catch (e) {
-              showToast("Error updating subject");
+            } catch (err) {
+              showToast("Error updating subject", "warn");
             }
           });
         });
 
-        // Delete Subject
+        // Delete Subject (using custom modal)
         document.querySelectorAll("[data-delete-sub]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
+          btn.addEventListener("click", async (e) => {
+            e.stopPropagation();
             const id = btn.dataset.deleteSub;
             const name = btn.dataset.name;
-            if (!confirm(`Remove "${name}" from your subject list? (Existing session logs for ${name} will remain intact)`)) return;
+            const confirmed = await openCustomModal({
+              title: `Remove "${name}"?`,
+              description: `Remove "${name}" from your subject registry? Existing session logs for ${name} will remain intact in your ledger.`,
+              confirmText: "Remove Subject",
+              danger: true,
+            });
+            if (!confirmed) return;
             try {
               await deleteDoc(doc(db, "subjects", id));
               showToast(`Removed "${name}"`);
               loadSubjects();
-            } catch (e) {
-              showToast("Could not delete subject");
+            } catch (err) {
+              showToast("Could not delete subject", "warn");
             }
           });
         });
@@ -963,7 +1531,11 @@
         filterSubjectSelect.innerHTML =
           `<option value="ALL">All Subjects</option>` +
           allSubjects.map((s) => `<option value="${s.name}">${s.name}${s.completed ? " ✓" : ""}</option>`).join("");
-        filterSubjectSelect.value = prevFilter || "ALL";
+        if (prevFilter && (prevFilter === "ALL" || allSubjects.some((s) => s.name === prevFilter))) {
+          filterSubjectSelect.value = prevFilter;
+        } else {
+          filterSubjectSelect.value = "ALL";
+        }
       }
 
       document.getElementById("subject-form").addEventListener("submit", async (e) => {
@@ -984,9 +1556,237 @@
             }
           });
         } catch (err) {
-          showToast("Failed to add subject");
+          showToast("Failed to add subject", "warn");
         }
       });
+
+      // ==========================================
+      // CUSTOM "SUBJECT NAMES" DROPDOWN IN SESSION LEDGER
+      // ==========================================
+      let isSubjectDropdownOpen = false;
+
+      function toggleSubjectDropdown(forceState) {
+        isSubjectDropdownOpen = typeof forceState === "boolean" ? forceState : !isSubjectDropdownOpen;
+        ledgerDropdownBtn.setAttribute("aria-expanded", String(isSubjectDropdownOpen));
+        if (isSubjectDropdownOpen) {
+          ledgerDropdownMenu.classList.add("open");
+          ledgerDropdownChevron.classList.add("rotate-180", "text-accent-500");
+          renderLedgerSubjectDropdown();
+          setTimeout(() => dropdownSubjectSearch.focus(), 60);
+        } else {
+          ledgerDropdownMenu.classList.remove("open");
+          ledgerDropdownChevron.classList.remove("rotate-180", "text-accent-500");
+          dropdownSubjectSearch.value = "";
+        }
+      }
+
+      ledgerDropdownBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleSubjectDropdown();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (isSubjectDropdownOpen && !ledgerDropdownWrapper.contains(e.target)) {
+          toggleSubjectDropdown(false);
+        }
+      });
+
+      dropdownSubjectSearch.addEventListener("input", () => {
+        renderLedgerSubjectDropdown();
+      });
+
+      /**
+       * Collects all unique Subject Names from both `allSubjects` and `allLogs`,
+       * computes per-subject session count and total minutes, and renders the custom dropdown items.
+       */
+      function getSubjectStatsMap() {
+        const map = new Map();
+
+        // Seed from registered subjects
+        allSubjects.forEach((s) => {
+          if (s.name) {
+            map.set(s.name, {
+              name: s.name,
+              iconUrl: s.iconUrl || null,
+              completed: Boolean(s.completed),
+              count: 0,
+              minutes: 0,
+            });
+          }
+        });
+
+        // Accumulate from logs (also captures legacy/unregistered subject names)
+        allLogs.forEach((l) => {
+          const sub = (l.subject || "Uncategorized").trim();
+          if (!map.has(sub)) {
+            map.set(sub, {
+              name: sub,
+              iconUrl: null,
+              completed: false,
+              count: 0,
+              minutes: 0,
+            });
+          }
+          const entry = map.get(sub);
+          entry.count += 1;
+          entry.minutes += getLogMinutes(l);
+        });
+
+        return Array.from(map.values()).sort((a, b) => {
+          if (b.minutes !== a.minutes) return b.minutes - a.minutes;
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      function renderLedgerSubjectDropdown() {
+        const queryText = dropdownSubjectSearch.value.trim().toLowerCase();
+        const subjectStats = getSubjectStatsMap();
+        const totalAllMins = allLogs.reduce((acc, l) => acc + getLogMinutes(l), 0);
+
+        // Update active button label
+        if (ledgerSubjectFilter === "ALL") {
+          ledgerDropdownActiveLabel.textContent = "All Subjects";
+          ledgerDropdownActiveCount.textContent = `${allLogs.length} logs`;
+        } else {
+          ledgerDropdownActiveLabel.textContent = ledgerSubjectFilter;
+          const activeStat = subjectStats.find((s) => s.name === ledgerSubjectFilter);
+          ledgerDropdownActiveCount.textContent = activeStat
+            ? `${activeStat.count} • ${formatMinutesHM(activeStat.minutes)}`
+            : "0 logs";
+        }
+
+        const filteredStats = queryText
+          ? subjectStats.filter((s) => s.name.toLowerCase().includes(queryText))
+          : subjectStats;
+
+        let html = "";
+
+        // "All Subjects" option at top
+        if (!queryText || "all subjects".includes(queryText)) {
+          const isAllActive = ledgerSubjectFilter === "ALL";
+          html += `
+            <button
+              type="button"
+              data-select-ledger-subject="ALL"
+              class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                isAllActive
+                  ? "bg-accent-600 text-white shadow-sm"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+              }"
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                <i class="ph-bold ph-squares-four text-sm ${isAllActive ? "text-white" : "text-accent-500"}"></i>
+                <span class="truncate">All Subjects</span>
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
+                <span class="${isAllActive ? "text-indigo-100" : "text-slate-400"}">${formatMinutesHM(totalAllMins)}</span>
+                <span class="px-1.5 py-0.5 rounded-md ${
+                  isAllActive ? "bg-white/20 text-white" : "bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                }">${allLogs.length}</span>
+              </div>
+            </button>
+          `;
+        }
+
+        if (filteredStats.length === 0) {
+          html += `
+            <div class="py-6 px-3 text-center text-xs text-slate-400 font-mono">
+              No matching subject names
+            </div>
+          `;
+        } else {
+          html += filteredStats
+            .map((s) => {
+              const isSelected = ledgerSubjectFilter === s.name;
+              const iconEl = s.iconUrl
+                ? `<img src="${s.iconUrl}" alt="" class="w-4 h-4 shrink-0" onerror="this.style.display='none'" />`
+                : `<i class="ph-bold ph-hash text-sm ${isSelected ? "text-white" : "text-accent-500"}"></i>`;
+
+              return `
+                <button
+                  type="button"
+                  data-select-ledger-subject="${s.name.replace(/"/g, "&quot;")}"
+                  class="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    isSelected
+                      ? "bg-accent-600 text-white shadow-sm"
+                      : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                  }"
+                >
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    ${iconEl}
+                    <span class="truncate">${s.name}</span>
+                    ${s.completed ? `<span class="text-[10px] opacity-75">✓</span>` : ""}
+                  </div>
+                  <div class="flex items-center gap-1.5 shrink-0 font-mono text-[11px]">
+                    <span class="${isSelected ? "text-indigo-100" : "text-emerald-600 dark:text-emerald-400"}">${formatMinutesHM(s.minutes)}</span>
+                    <span class="px-1.5 py-0.5 rounded-md ${
+                      isSelected ? "bg-white/20 text-white" : "bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                    }">${s.count}</span>
+                  </div>
+                </button>
+              `;
+            })
+            .join("");
+        }
+
+        ledgerDropdownList.innerHTML = html;
+
+        ledgerDropdownList.querySelectorAll("[data-select-ledger-subject]").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const chosen = btn.dataset.selectLedgerSubject;
+            selectLedgerSubject(chosen);
+            toggleSubjectDropdown(false);
+          });
+        });
+      }
+
+      /**
+       * Selects a subject for the Session Ledger & syncs with the top filter if available.
+       */
+      function selectLedgerSubject(subjectName) {
+        ledgerSubjectFilter = subjectName || "ALL";
+
+        // Sync top heatmap subject select if option exists
+        const hasOption = Array.from(filterSubjectSelect.options).some((opt) => opt.value === ledgerSubjectFilter);
+        if (hasOption) {
+          filterSubjectSelect.value = ledgerSubjectFilter;
+        } else if (ledgerSubjectFilter === "ALL") {
+          filterSubjectSelect.value = "ALL";
+        }
+
+        // If grouped mode is active and a specific subject is chosen, ensure it's expanded
+        if (ledgerSubjectFilter !== "ALL") {
+          expandedSubjectGroups.add(ledgerSubjectFilter);
+        }
+
+        applyFilter();
+      }
+
+      document.getElementById("banner-reset-subject-btn").addEventListener("click", () => {
+        selectLedgerSubject("ALL");
+      });
+
+      // View Mode Switcher (Timeline vs Subject Groups)
+      const viewGroupedBtn = document.getElementById("view-grouped-btn");
+      const viewTimelineBtn = document.getElementById("view-timeline-btn");
+
+      function setLedgerViewMode(mode) {
+        ledgerViewMode = mode;
+        const activeCls = "px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm flex items-center gap-1.5 transition-all";
+        const inactiveCls = "px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition-all";
+        if (mode === "grouped") {
+          viewGroupedBtn.className = activeCls;
+          viewTimelineBtn.className = inactiveCls;
+        } else {
+          viewTimelineBtn.className = activeCls;
+          viewGroupedBtn.className = inactiveCls;
+        }
+        applyFilter();
+      }
+
+      viewGroupedBtn.addEventListener("click", () => setLedgerViewMode("grouped"));
+      viewTimelineBtn.addEventListener("click", () => setLedgerViewMode("timeline"));
 
       // ==========================================
       // LOGS FETCHING & FILTERING PIPELINE
@@ -1010,21 +1810,25 @@
       }
 
       function applyFilter() {
-        const subjectFilter = filterSubjectSelect.value;
+        const activeSubject = ledgerSubjectFilter;
         const searchQuery = searchInput.value.trim().toLowerCase();
 
+        clearSearchBtn.classList.toggle("hidden", !searchQuery);
+
         document.getElementById("heatmap-title-sub").textContent =
-          subjectFilter === "ALL" ? "All Subjects" : subjectFilter;
+          activeSubject === "ALL" ? "All Subjects" : activeSubject;
 
         // Filter by Subject first (for KPIs, Heatmap, Charts)
         const subjectFilteredLogs =
-          subjectFilter === "ALL"
+          activeSubject === "ALL"
             ? allLogs
-            : allLogs.filter((l) => l.subject === subjectFilter);
+            : allLogs.filter((l) => (l.subject || "Uncategorized") === activeSubject);
 
         const dayMap = computeStats(subjectFilteredLogs);
         renderHeatmap(dayMap);
         renderCharts(subjectFilteredLogs);
+        renderLedgerSubjectDropdown();
+        updateSubjectSpotlightBanner(activeSubject, subjectFilteredLogs);
 
         // Additional Timeline Filters (Selected Date on Heatmap + Search Query)
         let timelineLogs = subjectFilteredLogs;
@@ -1044,8 +1848,22 @@
         renderLogs(timelineLogs);
       }
 
+      function updateSubjectSpotlightBanner(activeSubject, subjectLogs) {
+        const banner = document.getElementById("ledger-subject-banner");
+        if (activeSubject === "ALL") {
+          banner.classList.add("hidden");
+          return;
+        }
+        banner.classList.remove("hidden");
+        const totalMins = subjectLogs.reduce((acc, l) => acc + getLogMinutes(l), 0);
+        document.getElementById("banner-subject-name").textContent = activeSubject;
+        document.getElementById("banner-subject-time").textContent = `${formatMinutesHM(totalMins)} (${totalMins}m)`;
+        document.getElementById("banner-subject-count").textContent = `${subjectLogs.length} ${subjectLogs.length === 1 ? "session" : "sessions"}`;
+        document.getElementById("banner-subject-icon").innerHTML = getSubjectIconHTML(activeSubject, "w-5 h-5");
+      }
+
       // ==========================================
-      // TELEMETRY & KPI COMPUTATION
+      // TELEMETRY & KPI COMPUTATION (Fixed Time & Date Math)
       // ==========================================
       function computeStats(logs) {
         const dayMap = {}; // { 'YYYY-MM-DD': { sessions: 0, minutes: 0 } }
@@ -1053,19 +1871,23 @@
         let weekMins = 0;
         let weekSessions = 0;
 
-        const now = new Date();
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 7);
+        // Normalize 7-day rolling window to local midnight (last 7 calendar days including today)
+        const todayMidnight = new Date();
+        todayMidnight.setHours(0, 0, 0, 0);
+        const sevenDayStartMidnight = new Date(todayMidnight);
+        sevenDayStartMidnight.setDate(sevenDayStartMidnight.getDate() - 6);
 
         logs.forEach((l) => {
           const k = dayKey(l.timestamp);
-          const mins = Number(l.minutes) || 0;
+          if (!k) return;
+          const mins = getLogMinutes(l);
           if (!dayMap[k]) dayMap[k] = { sessions: 0, minutes: 0 };
           dayMap[k].sessions += 1;
           dayMap[k].minutes += mins;
           totalMins += mins;
 
-          if (new Date(l.timestamp) >= weekAgo) {
+          const logDayDate = parseLocalDayKey(k);
+          if (logDayDate && logDayDate >= sevenDayStartMidnight && logDayDate <= todayMidnight) {
             weekMins += mins;
             weekSessions += 1;
           }
@@ -1099,21 +1921,25 @@
           prevDate = curDate;
         });
 
-        const totalHours = (totalMins / 60).toFixed(1);
+        const totalHoursDecimal = (totalMins / 60).toFixed(1);
         const avgMins = logs.length ? Math.round(totalMins / logs.length) : 0;
 
         document.getElementById("stat-streak").textContent = streak;
         document.getElementById("stat-best-streak").textContent = `Best: ${bestStreak}d`;
-        document.getElementById("stat-hours").textContent = totalHours;
-        document.getElementById("stat-mins-sub").textContent = `${totalMins.toLocaleString()} total mins`;
-        document.getElementById("stat-week-mins").textContent = weekMins;
-        document.getElementById("stat-week-sessions").textContent = `${weekSessions} session${weekSessions === 1 ? "" : "s"} logged`;
+
+        // Clear, unambiguous Total Time display (e.g. "14h 30m" or "45m")
+        document.getElementById("stat-hours").textContent = formatMinutesHM(totalMins);
+        document.getElementById("stat-mins-sub").textContent = `${totalHoursDecimal} hrs • ${totalMins.toLocaleString()} mins`;
+
+        document.getElementById("stat-week-mins").textContent = weekMins.toLocaleString();
+        document.getElementById("stat-week-sessions").textContent = `${formatMinutesHM(weekMins)} • ${weekSessions} session${weekSessions === 1 ? "" : "s"}`;
+
         document.getElementById("stat-total").textContent = logs.length;
         document.getElementById("stat-avg-session").textContent = `Avg: ${avgMins}m / session`;
         document.getElementById("stat-days").textContent = sortedDays.length;
 
         // Weekly Target Bar
-        const pct = Math.min(Math.round((weekMins / weeklyGoalMins) * 100), 100);
+        const pct = weeklyGoalMins > 0 ? Math.min(Math.round((weekMins / weeklyGoalMins) * 100), 100) : 0;
         document.getElementById("goal-current-text").textContent = weekMins;
         document.getElementById("goal-percent-text").textContent = `${pct}%`;
         document.getElementById("goal-progress-bar").style.width = `${pct}%`;
@@ -1199,7 +2025,7 @@
               year: "numeric",
             });
             tooltip.innerHTML = sessions
-              ? `<strong>${mins} mins (${sessions} session${sessions === 1 ? "" : "s"})</strong> • ${dateFormatted}`
+              ? `<strong>${formatMinutesHM(mins)} (${mins}m • ${sessions} session${sessions === 1 ? "" : "s"})</strong> • ${dateFormatted}`
               : `No activity • ${dateFormatted}`;
             tooltip.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
             tooltip.style.top = `${rect.top + window.scrollY - 6}px`;
@@ -1211,11 +2037,7 @@
           cell.addEventListener("mouseenter", showTip);
           cell.addEventListener("mouseleave", hideTip);
           cell.addEventListener("click", () => {
-            if (selectedDateKey === key) {
-              selectedDateKey = null;
-            } else {
-              selectedDateKey = key;
-            }
+            selectedDateKey = selectedDateKey === key ? null : key;
             updateDateFilterPill();
             applyFilter();
           });
@@ -1285,8 +2107,9 @@
         const ctxPie = document.getElementById("timeChart").getContext("2d");
         const subjectMins = {};
         logs.forEach((l) => {
-          const m = Number(l.minutes) || 0;
-          if (m > 0) subjectMins[l.subject] = (subjectMins[l.subject] || 0) + m;
+          const m = getLogMinutes(l);
+          const sub = l.subject || "Uncategorized";
+          if (m > 0) subjectMins[sub] = (subjectMins[sub] || 0) + m;
         });
 
         const pieLabels = Object.keys(subjectMins);
@@ -1330,7 +2153,7 @@
                 },
                 tooltip: {
                   callbacks: {
-                    label: (ctx) => ` ${ctx.raw} mins (${(ctx.raw / 60).toFixed(1)} hrs)`,
+                    label: (ctx) => ` ${formatMinutesHM(ctx.raw)} (${ctx.raw} mins)`,
                   },
                 },
               },
@@ -1348,7 +2171,7 @@
 
         logs.forEach((l) => {
           const k = dayKey(l.timestamp);
-          dailyTotals[k] = (dailyTotals[k] || 0) + (Number(l.minutes) || 0);
+          if (k) dailyTotals[k] = (dailyTotals[k] || 0) + getLogMinutes(l);
         });
 
         const today = new Date();
@@ -1394,7 +2217,7 @@
               legend: { display: false },
               tooltip: {
                 callbacks: {
-                  label: (ctx) => ` ${ctx.raw} mins studied`,
+                  label: (ctx) => ` ${formatMinutesHM(ctx.raw)} (${ctx.raw} mins)`,
                 },
               },
             },
@@ -1403,8 +2226,77 @@
       }
 
       // ==========================================
-      // TIMELINE RENDERING, EDITING & DELETION
+      // SESSION LEDGER RENDERING (Timeline & Subject Accordions)
       // ==========================================
+      function renderSingleLogArticle(log, index = 0) {
+        const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        const parsedNotes = log.notes ? DOMPurify.sanitize(marked.parse(log.notes)) : null;
+        const mins = getLogMinutes(log);
+        const tagBadge = log.tag
+          ? `<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${log.tag}</span>`
+          : "";
+
+        const delayMs = Math.min(index * 35, 280);
+
+        return `
+          <article style="animation-delay: ${delayMs}ms" class="animate-log-card group relative p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/90 bg-slate-50/70 dark:bg-[#0b0f17]/80 hover:border-accent-500/40 transition-all">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <button
+                    type="button"
+                    data-quick-filter-subject="${(log.subject || "Uncategorized").replace(/"/g, "&quot;")}"
+                    title="Filter ledger by ${log.subject}"
+                    class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-accent-500/10 hover:bg-accent-500 hover:text-white text-accent-600 dark:text-accent-400 transition-colors"
+                  >
+                    ${getSubjectIconHTML(log.subject, "w-3 h-3")}
+                    <span>${log.subject || "Uncategorized"}</span>
+                  </button>
+                  ${tagBadge}
+                  <span class="text-xs font-mono text-slate-400 flex items-center gap-1">
+                    <i class="ph-bold ph-calendar-blank"></i> ${dateStr}
+                  </span>
+                  ${
+                    mins > 0
+                      ? `<span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
+                          ⏱ ${formatMinutesHM(mins)} <span class="text-[10px] text-slate-400">(${mins}m)</span>
+                        </span>`
+                      : ""
+                  }
+                </div>
+
+                <h4 class="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                  ${log.topic}
+                </h4>
+
+                ${
+                  parsedNotes
+                    ? `<div class="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/80 text-xs sm:text-sm text-slate-700 dark:text-slate-300 md-content overflow-x-auto">
+                        ${parsedNotes}
+                      </div>`
+                    : ""
+                }
+              </div>
+
+              <!-- Action Buttons (Edit & Delete) -->
+              <div class="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" data-edit-id="${log.id}" title="Edit Session" class="edit-log-btn p-2 rounded-lg text-slate-400 hover:text-accent-500 hover:bg-accent-500/10 transition-colors">
+                  <i class="ph-bold ph-pencil-simple text-sm"></i>
+                </button>
+                <button type="button" data-delete-id="${log.id}" title="Delete Session" class="delete-log-btn p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
+                  <i class="ph-bold ph-trash text-sm"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
       function renderLogs(logs) {
         document.getElementById("logs-count-pill").textContent = `${logs.length} ${logs.length === 1 ? "entry" : "entries"}`;
 
@@ -1413,81 +2305,144 @@
             <div class="p-10 flex flex-col items-center justify-center text-center border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400">
               <i class="ph-duotone ph-notebook text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
               <p class="text-sm font-medium">No matching study sessions found.</p>
+              ${
+                ledgerSubjectFilter !== "ALL" || selectedDateKey || searchInput.value
+                  ? `<button type="button" id="reset-all-ledger-filters-btn" class="mt-3 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-accent-500/10 text-accent-500 hover:bg-accent-500 hover:text-white transition-colors">Reset Filters</button>`
+                  : ""
+              }
             </div>`;
+
+          const resetBtn = document.getElementById("reset-all-ledger-filters-btn");
+          if (resetBtn) {
+            resetBtn.addEventListener("click", () => {
+              selectedDateKey = null;
+              searchInput.value = "";
+              updateDateFilterPill();
+              selectLedgerSubject("ALL");
+            });
+          }
           return;
         }
 
-        logsContainer.innerHTML = logs
-          .map((log) => {
-            const dateStr = new Date(log.timestamp).toLocaleDateString(undefined, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
-            const parsedNotes = log.notes ? DOMPurify.sanitize(marked.parse(log.notes)) : null;
-            const tagBadge = log.tag
-              ? `<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">${log.tag}</span>`
-              : "";
+        if (ledgerViewMode === "grouped") {
+          // Group logs by Subject Name and render interactive animated Subject Accordion cards
+          const groupsMap = new Map();
+          let grandTotalMins = 0;
 
-            return `
-              <article class="group relative p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800/90 bg-slate-50/70 dark:bg-[#0b0f17]/80 hover:border-accent-500/40 transition-all">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-accent-500/10 text-accent-600 dark:text-accent-400">
-                        ${log.subject}
-                      </span>
-                      ${tagBadge}
-                      <span class="text-xs font-mono text-slate-400 flex items-center gap-1">
-                        <i class="ph-bold ph-calendar-blank"></i> ${dateStr}
-                      </span>
-                      ${
-                        log.minutes
-                          ? `<span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                              ⏱ ${log.minutes}m
-                            </span>`
-                          : ""
-                      }
+          logs.forEach((log) => {
+            const sub = log.subject || "Uncategorized";
+            const mins = getLogMinutes(log);
+            grandTotalMins += mins;
+            if (!groupsMap.has(sub)) {
+              groupsMap.set(sub, { subject: sub, logs: [], totalMins: 0 });
+            }
+            const g = groupsMap.get(sub);
+            g.logs.push(log);
+            g.totalMins += mins;
+          });
+
+          const sortedGroups = Array.from(groupsMap.values()).sort((a, b) => b.totalMins - a.totalMins);
+
+          // Auto-expand first group if none expanded yet
+          if (expandedSubjectGroups.size === 0 && sortedGroups.length > 0) {
+            expandedSubjectGroups.add(sortedGroups[0].subject);
+          }
+
+          logsContainer.innerHTML = sortedGroups
+            .map((grp, idx) => {
+              const isExpanded = expandedSubjectGroups.has(grp.subject);
+              const sharePct = grandTotalMins > 0 ? Math.round((grp.totalMins / grandTotalMins) * 100) : 0;
+
+              return `
+                <div style="animation-delay: ${idx * 45}ms" class="animate-log-card rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-[#0b0f17]/60 overflow-hidden transition-all">
+                  <button
+                    type="button"
+                    data-accordion-subject="${grp.subject.replace(/"/g, "&quot;")}"
+                    class="w-full p-4 flex items-center justify-between gap-3 text-left hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <div class="flex items-center gap-3 min-w-0">
+                      <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-center shrink-0 shadow-sm">
+                        ${getSubjectIconHTML(grp.subject, "w-4 h-4")}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                          <h3 class="text-sm sm:text-base font-bold font-display text-slate-900 dark:text-white truncate">${grp.subject}</h3>
+                          <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-accent-500/10 text-accent-600 dark:text-accent-400">
+                            ${grp.logs.length} ${grp.logs.length === 1 ? "entry" : "entries"}
+                          </span>
+                        </div>
+                        <div class="mt-1 flex items-center gap-2">
+                          <div class="w-24 sm:w-36 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-accent-500 to-emerald-400 rounded-full" style="width: ${sharePct}%"></div>
+                          </div>
+                          <span class="text-[10px] font-mono text-slate-400">${sharePct}% of time</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <h4 class="text-base font-bold text-slate-900 dark:text-white leading-snug">
-                      ${log.topic}
-                    </h4>
+                    <div class="flex items-center gap-3 shrink-0">
+                      <div class="text-right">
+                        <div class="text-xs sm:text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">${formatMinutesHM(grp.totalMins)}</div>
+                        <div class="text-[10px] font-mono text-slate-400">${grp.totalMins} mins</div>
+                      </div>
+                      <div class="w-7 h-7 rounded-lg bg-slate-200/60 dark:bg-slate-800 flex items-center justify-center text-slate-500 transition-transform duration-300 ${isExpanded ? "rotate-180 text-accent-500" : ""}">
+                        <i class="ph-bold ph-caret-down text-xs"></i>
+                      </div>
+                    </div>
+                  </button>
 
-                    ${
-                      parsedNotes
-                        ? `<div class="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/80 text-xs sm:text-sm text-slate-700 dark:text-slate-300 md-content overflow-x-auto">
-                            ${parsedNotes}
-                          </div>`
-                        : ""
-                    }
-                  </div>
-
-                  <!-- Action Buttons (Edit & Delete) -->
-                  <div class="flex items-center gap-1 shrink-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button type="button" data-edit-id="${log.id}" title="Edit Session" class="edit-log-btn p-2 rounded-lg text-slate-400 hover:text-accent-500 hover:bg-accent-500/10 transition-colors">
-                      <i class="ph-bold ph-pencil-simple text-sm"></i>
-                    </button>
-                    <button type="button" data-delete-id="${log.id}" title="Delete Session" class="delete-log-btn p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
-                      <i class="ph-bold ph-trash text-sm"></i>
-                    </button>
+                  <div class="accordion-content-wrapper ${isExpanded ? "expanded" : ""}">
+                    <div class="accordion-inner">
+                      <div class="p-3 pt-1 space-y-2.5 border-t border-slate-200/60 dark:border-slate-800/70">
+                        ${grp.logs.map((l, i) => renderSingleLogArticle(l, i)).join("")}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </article>
-            `;
-          })
-          .join("");
+              `;
+            })
+            .join("");
+
+          // Attach Accordion Toggle Listeners
+          logsContainer.querySelectorAll("[data-accordion-subject]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const subName = btn.dataset.accordionSubject;
+              const wrapper = btn.nextElementSibling;
+              const caretBox = btn.querySelector(".ph-caret-down")?.parentElement;
+              if (expandedSubjectGroups.has(subName)) {
+                expandedSubjectGroups.delete(subName);
+                wrapper.classList.remove("expanded");
+                caretBox?.classList.remove("rotate-180", "text-accent-500");
+              } else {
+                expandedSubjectGroups.add(subName);
+                wrapper.classList.add("expanded");
+                caretBox?.classList.add("rotate-180", "text-accent-500");
+              }
+            });
+          });
+        } else {
+          // Standard Chronological Timeline Feed
+          logsContainer.innerHTML = logs.map((log, idx) => renderSingleLogArticle(log, idx)).join("");
+        }
+
+        // Clicking a subject badge inside any log card filters the ledger by that subject
+        logsContainer.querySelectorAll("[data-quick-filter-subject]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const sub = btn.dataset.quickFilterSubject;
+            selectLedgerSubject(ledgerSubjectFilter === sub ? "ALL" : sub);
+          });
+        });
 
         // Attach Edit Handlers
-        document.querySelectorAll(".edit-log-btn").forEach((btn) => {
+        logsContainer.querySelectorAll(".edit-log-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             const log = allLogs.find((l) => l.id === btn.dataset.editId);
             if (!log) return;
 
             document.getElementById("edit-log-id").value = log.id;
             document.getElementById("log-date").value = dayKey(log.timestamp);
-            document.getElementById("log-minutes").value = log.minutes || "";
+            minutesInput.value = getLogMinutes(log) || "";
+            updateDurationInputPreview();
             document.getElementById("log-subject").value = log.subject;
             document.getElementById("log-topic").value = log.topic;
             document.getElementById("log-notes").value = log.notes || "";
@@ -1501,17 +2456,24 @@
           });
         });
 
-        // Attach Delete Handlers (Fixed bug from original `.group button` selector)
-        document.querySelectorAll(".delete-log-btn").forEach((btn) => {
+        // Attach Delete Handlers (Using Custom Modal)
+        logsContainer.querySelectorAll(".delete-log-btn").forEach((btn) => {
           btn.addEventListener("click", async () => {
-            if (!confirm("Delete this session permanently?")) return;
             const id = btn.dataset.deleteId;
+            const log = allLogs.find((l) => l.id === id);
+            const confirmed = await openCustomModal({
+              title: "Delete Study Session?",
+              description: `Permanently delete "${log ? log.topic : "this session"}" from your ledger? This action cannot be undone.`,
+              confirmText: "Delete Session",
+              danger: true,
+            });
+            if (!confirmed) return;
             try {
               await deleteDoc(doc(db, "logs", id));
               showToast("Session deleted");
               loadLogs();
             } catch (err) {
-              showToast("Error deleting session");
+              showToast("Error deleting session", "warn");
             }
           });
         });
@@ -1522,7 +2484,8 @@
         document.getElementById("edit-log-id").value = "";
         document.getElementById("log-topic").value = "";
         document.getElementById("log-notes").value = "";
-        document.getElementById("log-minutes").value = "";
+        minutesInput.value = "";
+        updateDurationInputPreview();
         setTodayDateInput();
         document.getElementById("form-mode-title").textContent = "Log Study Session";
         document.getElementById("submit-btn-text").textContent = "Commit Session";
@@ -1538,11 +2501,18 @@
         const subject = logSubjectSelect.value;
         const topic = document.getElementById("log-topic").value.trim();
         const notes = document.getElementById("log-notes").value.trim();
-        const minutes = document.getElementById("log-minutes").value;
+        const minutesVal = parseInt(minutesInput.value, 10);
         const tag = document.getElementById("log-tag").value;
 
         if (!subject) {
-          alert("Please select or add a subject first.");
+          showToast("Please select or add a subject track first!", "warn");
+          logSubjectSelect.focus();
+          return;
+        }
+
+        if (isNaN(minutesVal) || minutesVal < 1) {
+          showToast("Please enter a valid duration in minutes (at least 1m)", "warn");
+          minutesInput.focus();
           return;
         }
 
@@ -1556,7 +2526,7 @@
           subject,
           topic,
           notes: notes || null,
-          minutes: minutes ? Number(minutes) : null,
+          minutes: minutesVal,
           tag: tag || "Deep Work",
           timestamp,
         };
@@ -1564,24 +2534,31 @@
         try {
           if (editId) {
             await updateDoc(doc(db, "logs", editId), payload);
-            showToast("Session updated!");
+            showToast(`Session updated (${formatMinutesHM(minutesVal)})!`);
           } else {
             await addDoc(logsCol, payload);
-            showToast("Session committed to ledger!");
+            showToast(`Logged ${formatMinutesHM(minutesVal)} under ${subject}!`);
           }
           resetFormMode();
           await loadLogs();
         } catch (err) {
           console.error(err);
-          showToast("Error saving session");
+          showToast("Error saving session", "warn");
         } finally {
           submitBtn.disabled = false;
         }
       });
 
-      // Filter & Search Listeners
-      filterSubjectSelect.addEventListener("change", applyFilter);
+      // Sync top Matrix Subject Select with Session Ledger Subject Names Dropdown
+      filterSubjectSelect.addEventListener("change", () => {
+        selectLedgerSubject(filterSubjectSelect.value);
+      });
+
       searchInput.addEventListener("input", applyFilter);
+      clearSearchBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        applyFilter();
+      });
 
       // ==========================================
       // 1-CLICK DATA EXPORT (JSON & CSV)
@@ -1608,7 +2585,7 @@
           dayKey(l.timestamp),
           `"${(l.subject || "").replace(/"/g, '""')}"`,
           `"${(l.tag || "").replace(/"/g, '""')}"`,
-          l.minutes || 0,
+          getLogMinutes(l),
           `"${(l.topic || "").replace(/"/g, '""')}"`,
           `"${(l.notes || "").replace(/"/g, '""').replace(/\n/g, " ")}"`,
         ]);
@@ -1625,6 +2602,7 @@
 
       // Initialize App
       async function init() {
+        syncTimerTick();
         await loadSubjects();
         await loadLogs();
       }
